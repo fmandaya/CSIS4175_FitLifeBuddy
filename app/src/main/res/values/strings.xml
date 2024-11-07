@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">CSIS4175_F24_FitLifeBuddy</string>
+    <string name="txtWelcome">WELCOME TO</string>
+    <string name="txtFitLifeBuddy">FITLIFEBUDDY</string>
+    <string name="txtWelcomeDescp">Personalized workouts will help you\ngain strength, get in better shape and\nembrace a healthy lifestyle</string>
+    <string name="txtGetStarted">LET\'S START!</string>
+    <string name="google_maps_api_key">AIzaSyBCS2-I9kYw43mSe1BLR5cjscGzhnxVe5I</string>
+</resources>
