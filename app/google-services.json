@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "446663911303",
+    "project_id": "fitlife-buddy",
+    "storage_bucket": "fitlife-buddy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446663911303:android:d5a5adc8e076ce3b455522",
+        "android_client_info": {
+          "package_name": "com.example.csis4175_f24_fitlifebuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe6r_-1fVe1GeK4JpwEuekzI1sjA6RPHY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

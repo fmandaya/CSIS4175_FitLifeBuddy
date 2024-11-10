@@ -31,9 +31,22 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
 @Composable
 fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = Modifier) {
+/*
+    lateinit var auth: FirebaseAuth
+    auth = Firebase.auth
+    //onStart(navController = rememberNavController());
+    val currentUser = auth.currentUser
+    if (currentUser != null) {
+        navController.navigate("menu_screen")
+    }
+ */
+
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
 

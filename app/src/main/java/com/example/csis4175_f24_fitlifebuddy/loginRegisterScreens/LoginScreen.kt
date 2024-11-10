@@ -1,12 +1,16 @@
 package com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens
 
 
+import android.content.ContentValues.TAG
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,14 +42,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 
+//lateinit var auth: FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+    lateinit var auth: FirebaseAuth
+    auth = Firebase.auth
+
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val topPadding = 50.dp // Adjusts to 10% of screen height
     var emailValue by remember { mutableStateOf("") }
     var passwordValue by remember { mutableStateOf("") }
+
+    var loading by remember { mutableStateOf(false) } // Loading state
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -102,11 +115,38 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
 
         Spacer(modifier = Modifier.height(80.dp))
 
-        // Login Button
-        MyButton(text = "Login") {
-            navController.navigate("menu_screen")
-        }
+        // Conditional: Show loading indicator if creating account, else show button
+        if (loading) {
+            CircularProgressIndicator(
+                color = Color(0xFFFF9B70), // Orange color for the progress indicator
+                modifier = Modifier.size(50.dp)
+            )
+        }else{
+            // Login Button
+            MyButton(text = "Login") {
+                // Initialize Firebase Auth
+                auth.signInWithEmailAndPassword(emailValue, passwordValue)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithEmail:success")
+                            val user = auth.currentUser
+                            navController.navigate("menu_screen")
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithEmail:failure", task.exception)
+                            Toast.makeText(
+                                navController.context,
+                                "Authentication failed.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
 
+                        }
+                    }
+
+
+            }
+        }
         Spacer(modifier = Modifier.height(10.dp))
 
         // "Have an account? Sign up" text with clickable "Sign up" part
@@ -129,7 +169,7 @@ fun MyTextField(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Label on the left, bold and black
+        // Label on the left
         Text(
             text = label,
             style = TextStyle(
@@ -140,20 +180,20 @@ fun MyTextField(
             )
         )
 
-        // TextField on the right, smaller and orange text
+        // TextField on the right
         TextField(
             value = value,
             onValueChange = onValueChange,
             textStyle = TextStyle(
                 fontFamily = FontFamily(Font(R.font.quicksand_regular)),
                 fontSize = 14.sp,
-                color = Color(0xFFFF9B70), // Orange color
-                textAlign = androidx.compose.ui.text.style.TextAlign.End // Align text to the right
+                color = Color(0xFFFF9B70),
+                textAlign = TextAlign.Start
             ),
             colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent, // No background color
-                focusedIndicatorColor = Color.Transparent, // No focused indicator
-                unfocusedIndicatorColor = Color.Transparent // No unfocused indicator
+                containerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
             ),
             modifier = Modifier.width(200.dp)
         )
@@ -208,6 +248,7 @@ fun SignUpText() {
         modifier = Modifier.padding(bottom = 16.dp)
     )
 }
+
 
 @Preview(showBackground = true)
 @Composable
