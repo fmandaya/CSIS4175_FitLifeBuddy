@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation(libs.firebase.auth)
+    implementation(libs.androidx.material.icons.extended)
+
 
 
 }
