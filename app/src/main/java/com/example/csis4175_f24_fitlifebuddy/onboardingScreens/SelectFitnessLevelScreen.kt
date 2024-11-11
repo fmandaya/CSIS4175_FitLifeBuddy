@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,7 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 
 @Composable
 fun SelectFitnessLevelScreen(navController: NavHostController) {
+    val quicksand = FontFamily(Font(R.font.quicksand_regular))
     var selectedIndex by remember { mutableStateOf(-1) }
     val fitnessLevels = listOf("Beginner", "Intermediate", "Advanced")
     val descriptions = listOf(
@@ -63,7 +66,7 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
         )
         Column(
             modifier = Modifier
-                .padding(start = 25.dp, end = 25.dp, top = 280.dp),
+                .padding(start = 25.dp, end = 25.dp, top = 350.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -71,7 +74,8 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
                 text = "Select Your Fitness Level",
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                fontFamily = quicksand
             )
             Spacer(modifier = Modifier.height(20.dp))
             LazyColumn {
@@ -85,7 +89,7 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-            MyButton("Next") {
+            MyButton("NEXT") {
                 if (selectedIndex == -1) {
                     Toast.makeText(
                         context,
@@ -102,7 +106,7 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
 }
 
 fun onNextClick(navController: NavHostController) {
-    navController.navigate("menu_screen")
+    navController.navigate("home_screen")
 }
 
 @Composable
@@ -112,7 +116,7 @@ fun FitnessLevelItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) Color(0xFFFF9B70) else Color.LightGray
+    val backgroundColor = if (isSelected) Color(0xFFD05C29) else Color.LightGray
     val textColor = if (isSelected) Color.Black else Color.Black
 
     Box(

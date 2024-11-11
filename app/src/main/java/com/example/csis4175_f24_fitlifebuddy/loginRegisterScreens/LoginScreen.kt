@@ -6,7 +6,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,11 +36,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
@@ -52,6 +57,7 @@ import com.google.firebase.auth.auth
 fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier) {
     lateinit var auth: FirebaseAuth
     auth = Firebase.auth
+    val quicksand = FontFamily(Font(R.font.quicksand_regular))
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val topPadding = 50.dp // Adjusts to 10% of screen height
@@ -60,155 +66,153 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
 
     var loading by remember { mutableStateOf(false) } // Loading state
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(topPadding))
 
-        Text(
-            text = "Login",
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                fontWeight = FontWeight.Bold,
-                fontSize = 30.sp,
-                color = Color(0xFFFF9B70),
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.woman_man_logo),
-            contentDescription = "FitLife Buddy Splash Screen",
-            modifier = Modifier
-                .size(300.dp)
-                .padding(vertical = 16.dp),
-            contentScale = ContentScale.Fit
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Email TextField with gray line below
-        MyTextField(
-            label = "Email",
-            value = emailValue,
-            onValueChange = { newValue -> emailValue = newValue }
-        )
-        DividerLine()
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Password TextField with gray line below
-        MyTextField(
-            label = "Password",
-            value = passwordValue,
-            onValueChange = { newValue -> passwordValue = newValue }
-        )
-        DividerLine()
-
-        Spacer(modifier = Modifier.height(80.dp))
-
-        // Conditional: Show loading indicator if creating account, else show button
-        if (loading) {
-            CircularProgressIndicator(
-                color = Color(0xFFFF9B70), // Orange color for the progress indicator
-                modifier = Modifier.size(50.dp)
-            )
-        }else{
-            // Login Button
-            MyButton(text = "Login") {
-                // Initialize Firebase Auth
-                auth.signInWithEmailAndPassword(emailValue, passwordValue)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithEmail:success")
-                            val user = auth.currentUser
-                            navController.navigate("home_screen")
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithEmail:failure", task.exception)
-                            Toast.makeText(
-                                navController.context,
-                                "Authentication failed.",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-
-                        }
-                    }
-
-
-            }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // "Have an account? Sign up" text with clickable "Sign up" part
-        SignUpText()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Label on the left
-        Text(
-            text = label,
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = Color.Black
-            )
-        )
-
-        // TextField on the right
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            textStyle = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_regular)),
-                fontSize = 14.sp,
-                color = Color(0xFFFF9B70),
-                textAlign = TextAlign.Start
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
-            modifier = Modifier.width(200.dp)
-        )
-    }
-}
-
-@Composable
-fun DividerLine() {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(Color.Gray)
-    )
-    Spacer(modifier = Modifier.height(8.dp))
+            .fillMaxSize()
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.login_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 25.dp)
+        ) {
+            Spacer(modifier = Modifier.height(topPadding))
+
+            Text(
+                text = "Login",
+                style = TextStyle(
+                    fontFamily = FontFamily(
+                        Font(R.font.quicksand_bold, FontWeight.Bold)
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 35.sp,
+                    color = Color(0xFFD05C29),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(450.dp))
+
+            Text(
+                text = "Email",
+                color = Color.Black,
+                modifier = Modifier.align(Alignment.Start),
+                fontSize = 16.sp
+            )
+            BasicTextField(
+                value = emailValue,
+                onValueChange = { newValue -> emailValue = newValue },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                    .height(45.dp),  // Fixed height for the text field
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    fontFamily = quicksand
+                ),
+                decorationBox = { innerTextField ->
+                    Box(Modifier.padding(12.dp)) {
+                        if (emailValue.isEmpty()) {
+                            Text(
+                                text = "example@email.com",
+                                color = Color.LightGray,
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+            Text(
+                text = "Password",
+                color = Color.Black,
+                modifier = Modifier.align(Alignment.Start),
+                fontSize = 16.sp
+            )
+            BasicTextField(
+                value = passwordValue,
+                onValueChange = { newValue -> passwordValue = newValue },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp))
+                    .height(45.dp),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    fontFamily = quicksand
+                ),
+                visualTransformation = PasswordVisualTransformation(), // Masking password input
+                decorationBox = { innerTextField ->
+                    Box(Modifier.padding(12.dp)) {
+                        if (passwordValue.isEmpty()) {
+                            Text(
+                                text = "Enter your password",
+                                color = Color.LightGray,
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // Conditional: Show loading indicator if creating account, else show button
+            if (loading) {
+                CircularProgressIndicator(
+                    color = Color(0xFFD05C29), // Orange color for the progress indicator
+                    modifier = Modifier.size(50.dp)
+                )
+            } else {
+                // Login Button
+                MyButton(text = "Login") {
+                    // Check if email and password are filled
+                    if (emailValue.isNotBlank() && passwordValue.isNotBlank()) {
+                        // Initialize Firebase Auth
+                        loading = true
+                        auth.signInWithEmailAndPassword(emailValue, passwordValue)
+                            .addOnCompleteListener { task ->
+                                loading = false
+                                if (task.isSuccessful) {
+                                    // Sign in success, navigate to home screen
+                                    Log.d(TAG, "signInWithEmail:success")
+                                    navController.navigate("home_screen")
+                                } else {
+                                    // Sign in fails, display an error message
+                                    Log.w(TAG, "signInWithEmail:failure", task.exception)
+                                    Toast.makeText(
+                                        navController.context,
+                                        "Authentication failed.",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                    } else {
+                        // Display a message if email or password is missing
+                        Toast.makeText(
+                            navController.context,
+                            "Please fill in both email and password.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            // "Have an account? Sign up" text with clickable "Sign up" part
+            SignUpText(navController = navController)
+        }
+    }
 }
 
 @Composable
@@ -216,22 +220,23 @@ fun MyButton(text: String, onNextClicked: () -> Unit) {
     Button(
         onClick = onNextClicked,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFF9B70)
+            containerColor = Color(0xFFD05C29)
         ),
         modifier = Modifier
             .width(300.dp)
-            .padding(vertical = 8.dp)
+            .padding(25.dp),
+        shape = RoundedCornerShape(10.dp),
     ) {
         Text(
             text = text,
-            fontSize = 16.sp,
+            fontSize = 20.sp,
             color = Color.White
         )
     }
 }
 
 @Composable
-fun SignUpText() {
+fun SignUpText(navController: NavController) {
     val annotatedText = AnnotatedString.Builder("Have an account? ").apply {
         pushStyle(SpanStyle(color = Color.Red, textDecoration = TextDecoration.Underline))
         append("Sign up")
@@ -239,7 +244,7 @@ fun SignUpText() {
 
     ClickableText(
         text = annotatedText,
-        onClick = { /* Handle sign-up click action here */ },
+        onClick = { navController.navigate("register_screen") },
         style = TextStyle(
             fontSize = 14.sp,
             color = Color.Gray,

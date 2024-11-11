@@ -2,6 +2,7 @@ package com.example.csis4175_f24_fitlifebuddy.onboardingScreens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
@@ -31,58 +32,55 @@ fun OnboardingScreenThree(navController: NavHostController, modifier: Modifier =
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(topPadding))
-
-        Text(
-            text = "Let's Get Started",
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Color(0xFFFF9B70),
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+    Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.woman_man_logo),
+            painter = painterResource(id = R.drawable.onboarding_screen_three),
             contentDescription = "FitLife Buddy Splash Screen",
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.Crop
+        )
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .size(300.dp) // Smaller image size
-                .padding(vertical = 16.dp),
-            contentScale = ContentScale.Fit
-        )
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(topPadding))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Let's Get Started",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 35.sp,
+                    color = Color(0xFFD05C29),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Text(
-            text = "Please Select an Option",
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                fontWeight = FontWeight.Bold,
-                fontSize = 25.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(500.dp))
 
-        Spacer(modifier = Modifier.height(130.dp))
-        MyButton(text = "I'm a new user") {
-            navController.navigate("register_screen")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        MyButton(text = "I have an account") {
-            navController.navigate("login_screen")
+            Text(
+                text = "Please Select an Option",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 25.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(50.dp))
+            MyButton(text = "I'm a new user") {
+                navController.navigate("register_screen")
+            }
+            MyButton(text = "I have an account") {
+                navController.navigate("login_screen")
+            }
         }
     }
 }
@@ -92,15 +90,16 @@ fun MyButton(text: String, onNextClicked: () -> Unit) {
     Button(
         onClick = onNextClicked,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFF9B70) // Orange button background
+            containerColor = Color(0xFFD05C29)
         ),
         modifier = Modifier
             .width(300.dp)
-            .padding(vertical = 8.dp) // Add vertical padding for separation
+            .padding(8.dp),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Text(
             text = text,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             color = Color.White // White text color
         )
     }

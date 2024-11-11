@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
@@ -37,22 +38,22 @@ import com.google.firebase.auth.auth
 
 @Composable
 fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = Modifier) {
-/*
-    lateinit var auth: FirebaseAuth
-    auth = Firebase.auth
-    //onStart(navController = rememberNavController());
-    val currentUser = auth.currentUser
-    if (currentUser != null) {
-        navController.navigate("menu_screen")
-    }
- */
+    /*
+        lateinit var auth: FirebaseAuth
+        auth = Firebase.auth
+        //onStart(navController = rememberNavController());
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            navController.navigate("menu_screen")
+        }
+     */
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.onboarding_screen_one),
+            painter = painterResource(id = R.drawable.welcome_bg),
             contentDescription = "FitLife Buddy Splash Screen",
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.Crop
@@ -65,8 +66,8 @@ fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = M
                     Font(R.font.quicksand_bold, FontWeight.Bold)
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Color(0xFFFF9B70),
+                fontSize = 35.sp,
+                color = Color(0xFFD05C29),
                 textAlign = TextAlign.Center
             ),
             modifier = Modifier.fillMaxWidth()
@@ -77,8 +78,8 @@ fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = M
             text = "Start your fitness journey with personalized workouts designed just for you. Track each session, challenge yourself, and see real progress. Let’s get moving!",
             style = TextStyle(
                 fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
-                fontSize = 18.sp,
-                color = Color.White
+                fontSize = 20.sp,
+                color = Color(0xFFD05C29)
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -86,11 +87,10 @@ fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = M
             textAlign = TextAlign.Center
         )
 
-        // Position the indicators and button at the bottom
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp) // Space from the bottom of the screen
+                .padding(bottom = 50.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -98,7 +98,7 @@ fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = M
             ) {
 
                 // Next button
-                NextButton("Next") {
+                NextButton("NEXT") {
                     navController.navigate("onboarding_screen_two")
                 }
             }
@@ -113,14 +113,17 @@ fun NextButton(text: String, onNextClicked: () -> Unit) {
             onNextClicked()
         },
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White // White button background
+            containerColor = Color(0xFFD05C29)
         ),
-        modifier = Modifier.width(300.dp) // Wider button
+        modifier = Modifier
+            .width(300.dp)
+            .padding(25.dp),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Text(
             text = text,
-            fontSize = 16.sp,
-            color = Color(0xFFFF9B70) // Orange text color
+            fontSize = 20.sp,
+            color = Color.White // Orange text color
         )
     }
 }

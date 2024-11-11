@@ -2,6 +2,7 @@ package com.example.csis4175_f24_fitlifebuddy.mainScreens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -27,7 +28,6 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // Ensures content is not covered by the bottom navigation
         ) {
             Image(
                 painter = painterResource(id = R.drawable.homepage_bg),
@@ -35,6 +35,14 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+            // Content with padding applied only to the inner elements
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                // content here...
+            }
         }
     }
 }

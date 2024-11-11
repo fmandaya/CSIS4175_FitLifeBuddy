@@ -32,7 +32,7 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 @Composable
 fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = Modifier) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
+    val topPadding = screenHeight * 0.5f // Adjusts to 10% of screen height
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -49,24 +49,24 @@ fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = M
                     Font(R.font.quicksand_bold, FontWeight.Bold)
                 ),
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Color(0xFFFF9B70),
+                fontSize = 40.sp,
+                color = Color(0xFFD05C29),
                 textAlign = TextAlign.Center
             ),
             modifier = Modifier.fillMaxWidth()
-                .padding(top = topPadding)
+                .padding(top = topPadding, start = 16.dp, end = 16.dp)
         )
 
         Text(
             text = "Fuel your fitness journey with balanced nutrition. Track your meals, explore healthy recipes, and make each meal a step toward a healthier you. Let’s dive in!",
             style = TextStyle(
                 fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
-                fontSize = 18.sp,
-                color = Color.White
+                fontSize = 20.sp,
+                color = Color(0xFFD05C29)
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = topPadding * 7.2f, start = 16.dp, end = 16.dp),
+                .padding(top = topPadding * 1.4f, start = 22.dp, end = 22.dp),
             textAlign = TextAlign.Center
         )
 
@@ -74,7 +74,7 @@ fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = M
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp) // Space from the bottom of the screen
+                .padding(bottom = 50.dp) // Space from the bottom of the screen
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -82,7 +82,7 @@ fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = M
             ) {
 
                 // Next button
-                NextButton("Start") {
+                NextButton("START") {
                     navController.navigate("onboarding_screen_three")
                 }
             }
