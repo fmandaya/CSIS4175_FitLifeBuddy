@@ -59,7 +59,9 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
     auth = Firebase.auth
     val quicksandBold = FontFamily(Font(R.font.quicksand_bold))
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val topPadding = screenHeight * 0.05f
+
     var nameValue by remember { mutableStateOf("") }
     var birthdayValue by remember { mutableStateOf("") }
     var emailValue by remember { mutableStateOf("") }
@@ -83,9 +85,9 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 55.dp, start = 20.dp, end = 20.dp)
+                .padding(horizontal = screenWidth * 0.05f)
         ) {
-            //Spacer(modifier = Modifier.height(topPadding))
+            Spacer(modifier = Modifier.height(topPadding))
 
             Text(
                 text = "Register",
@@ -94,15 +96,15 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                         Font(R.font.quicksand_bold, FontWeight.Bold)
                     ),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 35.sp,
+                    fontSize = (screenWidth * 0.08f).value.sp,
                     color = Color(0xFFD05C29),
                     textAlign = TextAlign.Center
                 ),
                 modifier = Modifier.fillMaxWidth()
-                    .padding(top = 20.dp)
+                    .padding(top = screenHeight * 0.02f)
             )
 
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.02f))
             Text(
                 text = "Full Name",
                 color = Color.Black,
@@ -133,7 +135,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
                 text = "Birthday",
                 color = Color.Black,
@@ -164,7 +166,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
                 text = "Height",
                 color = Color.Black,
@@ -195,7 +197,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
                 text = "Weight",
                 color = Color.Black,
@@ -227,24 +229,22 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.02f))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Gender",
+                    text = "Please select your sex: ",
                     style = TextStyle(
-                        fontFamily = FontFamily(Font(R.font.quicksand_medium)),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Left
                     ),
-                    modifier = Modifier.padding(start = 16.dp)
                 )
                 GenderToggleButton()
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
                 text = "Email",
                 color = Color.Black,
@@ -276,7 +276,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
                 text = "Password",
                 color = Color.Black,
@@ -321,8 +321,8 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                         modifier = Modifier.size(50.dp)
                     )
                 } else {
-                    MyButton(
-                        text = "NEXT",
+                    LoginRegisterButton(
+                        text = "Next",
                         isLoading = loading
                     ) {
                         // Perform validation before creating the account
@@ -366,7 +366,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             // "Have an account? Sign up" text with clickable "Sign up" part
             LoginText(navController = navController)
         }
@@ -517,19 +517,8 @@ fun onStart(navController: NavHostController) {
 */
 
 
-
-@Preview(showBackground = true)
 @Composable
-fun RegisterScreenPreview() {
-    FitLifeBuddyTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            RegisterScreen(navController = rememberNavController())
-        }
-    }
-}
-
-@Composable
-fun MyButton(
+fun LoginRegisterButton(
     text: String,
     isLoading: Boolean,
     onNextClicked: () -> Unit
@@ -545,7 +534,7 @@ fun MyButton(
             ),
             modifier = Modifier
                 .width(300.dp)
-                .padding(25.dp),
+                .padding(top = 25.dp),
             shape = RoundedCornerShape(10.dp),
             enabled = !isLoading // Disable button while loading
         ) {
@@ -556,6 +545,9 @@ fun MyButton(
                 )
             } else {
                 Text(
+                    fontFamily = FontFamily(
+                        Font(R.font.quicksand_bold, FontWeight.Bold)
+                    ),
                     text = text,
                     fontSize = 20.sp,
                     color = Color.White
@@ -565,3 +557,12 @@ fun MyButton(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    FitLifeBuddyTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            RegisterScreen(navController = rememberNavController())
+        }
+    }
+}

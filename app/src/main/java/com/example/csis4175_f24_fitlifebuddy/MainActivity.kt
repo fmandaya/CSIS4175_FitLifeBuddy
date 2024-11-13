@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             FitLifeBuddyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "onboarding_screen_one") {
+                    NavHost(navController = navController, startDestination = "splash_screen") {
                         composable("splash_screen") {
                             SplashScreen(navController = navController)
                         }

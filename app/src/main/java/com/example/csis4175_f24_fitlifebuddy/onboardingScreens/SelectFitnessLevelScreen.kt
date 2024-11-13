@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
+import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.MyButton
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 
 @Composable

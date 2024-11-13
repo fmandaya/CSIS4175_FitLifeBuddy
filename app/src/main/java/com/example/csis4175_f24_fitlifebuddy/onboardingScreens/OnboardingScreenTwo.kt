@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,57 +33,61 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 @Composable
 fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = Modifier) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val topPadding = screenHeight * 0.5f // Adjusts to 10% of screen height
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val topPadding = screenHeight * 0.1f
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.onboarding_screen_two),
             contentDescription = "FitLife Buddy Splash Screen",
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        Text(
-            text = "Track Your Nutrition",
-            style = TextStyle(
-                fontFamily = FontFamily(
-                    Font(R.font.quicksand_bold, FontWeight.Bold)
-                ),
-                fontWeight = FontWeight.Bold,
-                fontSize = 40.sp,
-                color = Color(0xFFD05C29),
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier.fillMaxWidth()
-                .padding(top = topPadding, start = 16.dp, end = 16.dp)
-        )
-
-        Text(
-            text = "Fuel your fitness journey with balanced nutrition. Track your meals, explore healthy recipes, and make each meal a step toward a healthier you. Let’s dive in!",
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
-                fontSize = 20.sp,
-                color = Color(0xFFD05C29)
-            ),
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = topPadding * 1.4f, start = 22.dp, end = 22.dp),
-            textAlign = TextAlign.Center
-        )
+                .align(Alignment.TopCenter)
+                .padding(horizontal = screenWidth * 0.05f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Track Your Nutrition",
+                style = TextStyle(
+                    fontFamily = FontFamily(
+                        Font(R.font.quicksand_bold, FontWeight.Bold)
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (screenWidth * 0.08f).value.sp, // Relative font size
+                    color = Color(0xFFD05C29),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth().padding(top = screenHeight * 0.49f)
+            )
 
-        // Position the indicators and button at the bottom
+            Text(
+                text = "Fuel your fitness journey with balanced nutrition. Track your meals, explore healthy recipes, and make each meal a step toward a healthier you. Let’s dive in!",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
+                    fontSize = (screenWidth * 0.046f).value.sp, // Relative font size
+                    color = Color(0xFFD05C29),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = screenHeight * 0.09f)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 50.dp) // Space from the bottom of the screen
+                .padding(bottom = screenHeight * 0.05f)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Space between indicators and button
+                verticalArrangement = Arrangement.spacedBy(screenHeight * 0.02f) // Space based on screen height
             ) {
-
-                // Next button
-                NextButton("START") {
+                NextButton("Start") {
                     navController.navigate("onboarding_screen_three")
                 }
             }
@@ -90,15 +95,13 @@ fun OnboardingScreenTwo(navController: NavHostController, modifier: Modifier = M
     }
 }
 
-
-
 @Preview(showBackground = true)
 @Composable
-fun  OnboardingScreenTwoPreview() {
+fun OnboardingScreenTwoPreview() {
     val navController = rememberNavController()
     FitLifeBuddyTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            OnboardingScreenTwo(navController = rememberNavController())
+            OnboardingScreenTwo(navController = navController)
         }
     }
 }

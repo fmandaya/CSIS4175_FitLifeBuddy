@@ -58,9 +58,10 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
     lateinit var auth: FirebaseAuth
     auth = Firebase.auth
     val quicksand = FontFamily(Font(R.font.quicksand_regular))
-
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val topPadding = 50.dp // Adjusts to 10% of screen height
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val topPadding = screenHeight * 0.03f
+
     var emailValue by remember { mutableStateOf("") }
     var passwordValue by remember { mutableStateOf("") }
 
@@ -81,7 +82,7 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 25.dp)
+                .padding(horizontal = screenWidth * 0.05f)
         ) {
             Spacer(modifier = Modifier.height(topPadding))
 
@@ -92,7 +93,7 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                         Font(R.font.quicksand_bold, FontWeight.Bold)
                     ),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 35.sp,
+                    fontSize = (screenWidth * 0.08f).value.sp,
                     color = Color(0xFFD05C29),
                     textAlign = TextAlign.Center
                 ),
@@ -100,7 +101,7 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                     .padding(top = 20.dp)
             )
 
-            Spacer(modifier = Modifier.height(450.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.54f))
 
             Text(
                 text = "Email",
@@ -133,7 +134,8 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                 }
             )
 
-            Spacer(modifier = Modifier.height(15.dp))
+
+        Spacer(modifier = Modifier.height(screenHeight * 0.02f))
             Text(
                 text = "Password",
                 color = Color.Black,
@@ -165,8 +167,8 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                     }
                 }
             )
-            Spacer(modifier = Modifier.height(15.dp))
 
+            Spacer(modifier = Modifier.height(screenHeight * 0.02f))
             // Conditional: Show loading indicator if creating account, else show button
             if (loading) {
                 CircularProgressIndicator(
@@ -208,7 +210,7 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             // "Have an account? Sign up" text with clickable "Sign up" part
             SignUpText(navController = navController)
         }
@@ -224,7 +226,7 @@ fun MyButton(text: String, onNextClicked: () -> Unit) {
         ),
         modifier = Modifier
             .width(300.dp)
-            .padding(25.dp),
+            .padding(top = 10.dp),
         shape = RoundedCornerShape(10.dp),
     ) {
         Text(

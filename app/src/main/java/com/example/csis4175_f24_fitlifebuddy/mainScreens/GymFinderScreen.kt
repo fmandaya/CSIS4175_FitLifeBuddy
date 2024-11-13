@@ -32,6 +32,7 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 @Composable
 fun GymFinderScreen(navController: NavHostController, modifier: Modifier = Modifier) {
     Scaffold(
+        containerColor = Color.White,
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
         GymFinder(innerPadding)

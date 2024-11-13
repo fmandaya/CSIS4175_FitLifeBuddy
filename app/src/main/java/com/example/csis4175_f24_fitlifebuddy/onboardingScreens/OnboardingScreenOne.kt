@@ -32,73 +32,65 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 
 @Composable
 fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = Modifier) {
-    /*
-        lateinit var auth: FirebaseAuth
-        auth = Firebase.auth
-        //onStart(navController = rememberNavController());
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            navController.navigate("menu_screen")
-        }
-     */
-
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.welcome_bg),
             contentDescription = "FitLife Buddy Splash Screen",
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        Text(
-            text = "Archive Your Fitness Goals",
-            style = TextStyle(
-                fontFamily = FontFamily(
-                    Font(R.font.quicksand_bold, FontWeight.Bold)
-                ),
-                fontWeight = FontWeight.Bold,
-                fontSize = 35.sp,
-                color = Color(0xFFD05C29),
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier.fillMaxWidth()
-                .padding(top = topPadding)
-        )
-
-        Text(
-            text = "Start your fitness journey with personalized workouts designed just for you. Track each session, challenge yourself, and see real progress. Let’s get moving!",
-            style = TextStyle(
-                fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
-                fontSize = 20.sp,
-                color = Color(0xFFD05C29)
-            ),
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = topPadding * 7.2f, start = 16.dp, end = 16.dp),
-            textAlign = TextAlign.Center
-        )
+                .align(Alignment.TopCenter)
+                .padding(top = topPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Achieve Your Fitness Goals",
+                style = TextStyle(
+                    fontFamily = FontFamily(
+                        Font(R.font.quicksand_bold, FontWeight.Bold)
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (screenWidth * 0.07f).value.sp, // Font size relative to screen width
+                    color = Color(0xFFD05C29),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            )
+
+            Text(
+                text = "Start your fitness journey with personalized workouts designed just for you. Track each session, challenge yourself, and see real progress. Let’s get moving!",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.quicksand_regular, FontWeight.Normal)),
+                    fontSize = (screenWidth * 0.046f).value.sp, // Font size relative to screen width
+                    color = Color(0xFFD05C29)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = screenHeight * 0.55f, start = 16.dp, end = 16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
 
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 50.dp)
+                .padding(bottom = screenHeight * 0.05f) // Adjusts bottom padding relative to screen height
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Space between indicators and button
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                // Next button
-                NextButton("NEXT") {
+                NextButton("Next") {
                     navController.navigate("onboarding_screen_two")
                 }
             }
@@ -109,33 +101,33 @@ fun OnboardingScreenOne(navController: NavHostController, modifier: Modifier = M
 @Composable
 fun NextButton(text: String, onNextClicked: () -> Unit) {
     Button(
-        onClick = {
-            onNextClicked()
-        },
+        onClick = { onNextClicked() },
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFFD05C29)
         ),
         modifier = Modifier
-            .width(300.dp)
+            .fillMaxWidth(0.8f) // Button width is 80% of screen width
             .padding(25.dp),
         shape = RoundedCornerShape(10.dp)
     ) {
         Text(
+            fontFamily = FontFamily(
+                Font(R.font.quicksand_bold, FontWeight.Bold)
+            ),
             text = text,
             fontSize = 20.sp,
-            color = Color.White // Orange text color
+            color = Color.White
         )
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun  OnboardingScreenOnePreview() {
+fun OnboardingScreenOnePreview() {
     val navController = rememberNavController()
     FitLifeBuddyTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            OnboardingScreenOne(navController = rememberNavController())
+            OnboardingScreenOne(navController = navController)
         }
     }
 }
