@@ -40,7 +40,7 @@ fun SplashScreen(navController: NavHostController, modifier: Modifier = Modifier
     ) {
         // Background image
         Image(
-            painter = painterResource(id = R.drawable.onboarding_screen_three),
+            painter = painterResource(id = R.drawable.splash),
             contentDescription = "FitLife Buddy Splash Screen",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

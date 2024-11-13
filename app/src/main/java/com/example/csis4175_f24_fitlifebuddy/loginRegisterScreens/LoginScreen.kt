@@ -239,7 +239,7 @@ fun MyButton(text: String, onNextClicked: () -> Unit) {
 
 @Composable
 fun SignUpText(navController: NavController) {
-    val annotatedText = AnnotatedString.Builder("Have an account? ").apply {
+    val annotatedText = AnnotatedString.Builder("Don't have an account yet? ").apply {
         pushStyle(SpanStyle(color = Color.Red, textDecoration = TextDecoration.Underline))
         append("Sign up")
     }.toAnnotatedString()
