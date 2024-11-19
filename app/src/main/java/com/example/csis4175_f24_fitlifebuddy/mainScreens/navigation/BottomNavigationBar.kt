@@ -29,11 +29,17 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         //  Pair("profile_screen", Icons.Filled.Home),
         Pair("workout_plan_screen", Icons.Filled.DirectionsRun),
-        Pair("nutrition_guidance_screen", Icons.Filled.Restaurant),
+        Pair("nutrition_history_screen", Icons.Filled.Restaurant),
         //  Pair("exercise_demos_screen", R.drawable.widget_exercisedemos),
         Pair("home_screen", Icons.Filled.Home),
         Pair("gym_finder_screen", Icons.Filled.Place),
         Pair("settings_screen", Icons.Filled.Settings)
+    )
+
+    // Map routes to their parent menu items
+    val routeMapping = mapOf(
+        "food_search_screen" to "nutrition_history_screen",
+        "food_details_screen" to "nutrition_history_screen"
     )
 
     Column {
@@ -49,18 +55,25 @@ fun BottomNavigationBar(navController: NavHostController) {
         ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
+            // Determine the selected menu item
+            val selectedRoute = routeMapping[currentRoute] ?: currentRoute
+
+
             items.forEach { item ->
                 NavigationBarItem(
-                    icon = { Icon(item.second, contentDescription = null,  modifier = Modifier.size(30.dp) ) },
-                    selected = currentRoute == item.first,
+                    icon = {
+                        Icon(item.second, contentDescription = null, modifier = Modifier.size(30.dp))
+                    },
+                    selected = selectedRoute == item.first,
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFFFF9B70),
                         unselectedIconColor = Color(0xFF707070),
                         indicatorColor = Color.Transparent
                     ),
                     onClick = {
+                        // Ensure navigation resets to the destination route
                         navController.navigate(item.first) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
                             launchSingleTop = true
                             restoreState = true
                         }

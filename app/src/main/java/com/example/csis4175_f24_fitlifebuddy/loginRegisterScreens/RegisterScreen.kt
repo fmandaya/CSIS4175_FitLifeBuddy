@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,26 +36,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.R
-import com.google.firebase.Firebase
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 
 @Composable
-fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    lateinit var auth: FirebaseAuth
-    auth = Firebase.auth
+fun RegisterScreen(authenticator: FirebaseAuth, database: FirebaseFirestore, navController: NavHostController, modifier: Modifier = Modifier) {
     val quicksandBold = FontFamily(Font(R.font.quicksand_bold))
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -242,7 +235,11 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                         textAlign = TextAlign.Left
                     ),
                 )
-                GenderToggleButton()
+                GenderToggleButton(
+                    onGenderSelected = { selectedGender ->
+                        sexValue = selectedGender // Update the parent state
+                    }
+                )
             }
             Spacer(modifier = Modifier.height(screenHeight * 0.01f))
             Text(
@@ -334,11 +331,34 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                             isValidPassword(passwordValue)
                         ) {
                             loading = true // Start loading
-                            auth.createUserWithEmailAndPassword(emailValue, passwordValue)
+                            val user = hashMapOf(
+                                "name" to nameValue,
+                                "birthday" to birthdayValue,
+                                "height" to heightValue,
+                                "weight" to weightValue,
+                                "sex" to sexValue,
+                                "email" to emailValue
+                            )
+
+
+                            authenticator.createUserWithEmailAndPassword(emailValue, passwordValue)
                                 .addOnCompleteListener { task ->
                                     loading = false // Stop loading
                                     if (task.isSuccessful) {
                                         Log.d(TAG, "createUserWithEmail:success")
+                                        val currentUser = authenticator.currentUser
+                                        val uid = currentUser!!.uid
+                                        val userRef = database.collection("users").document(uid)
+                                        userRef.set(user)
+                                            .addOnSuccessListener { documentReference ->
+                                                Log.d("Firestore", "DocumentSnapshot added with ID: ${uid}")
+                                                UserManager.documentReferenceID = uid;
+
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Log.w("Firestore", "Error adding user document", e)
+                                            }
+
                                         Toast.makeText(
                                             navController.context,
                                             "Account created successfully.",
@@ -354,6 +374,7 @@ fun RegisterScreen(navController: NavHostController, modifier: Modifier = Modifi
                                         ).show()
                                     }
                                 }
+
                         } else {
 
                             // Handle invalid input
@@ -445,7 +466,10 @@ fun LoginText(navController: NavController) {
 
 
 @Composable
-fun GenderToggleButton(modifier: Modifier = Modifier) {
+fun GenderToggleButton(
+    modifier: Modifier = Modifier,
+    onGenderSelected: (String) -> Unit // Callback to return the selected gender
+) {
     var selectedGender by remember { mutableStateOf("Male") }
 
     Row(
@@ -469,7 +493,10 @@ fun GenderToggleButton(modifier: Modifier = Modifier) {
                         bottomStart = 8.dp
                     )
                 )
-                .clickable { selectedGender = "Male" }
+                .clickable {
+                    selectedGender = "Male"
+                    onGenderSelected(selectedGender) // Notify parent of the selection
+                }
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -492,7 +519,10 @@ fun GenderToggleButton(modifier: Modifier = Modifier) {
                         bottomEnd = 8.dp
                     )
                 )
-                .clickable { selectedGender = "Female" }
+                .clickable {
+                    selectedGender = "Female"
+                    onGenderSelected(selectedGender) // Notify parent of the selection
+                }
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -557,6 +587,8 @@ fun LoginRegisterButton(
     }
 }
 
+
+/*
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {
@@ -566,3 +598,4 @@ fun RegisterScreenPreview() {
         }
     }
 }
+ */

@@ -7,21 +7,33 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
-
 
 
 @Composable
 fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
@@ -35,18 +47,35 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            // Content with padding applied only to the inner elements
+            // Content with responsive padding applied
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .padding(horizontal = 16.dp, vertical = screenHeight * 0.3f),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // content here...
+                // Welcome text
+                Text(
+                    text = "Welcome, ${UserManager.userName ?: "User"}!",
+                    fontSize = 30.sp,
+                    fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = screenHeight * 0.12f,bottom = screenHeight * 0.01f)
+                )
+
+                // Greeting message
+                Text(
+                    text = "We're excited to have you on your fitness journey! Explore the app to get started.",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                    color = Color.Black,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
 }
-
 
 
 @Preview(showBackground = true)

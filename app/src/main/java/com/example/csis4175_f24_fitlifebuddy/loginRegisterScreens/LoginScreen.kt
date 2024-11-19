@@ -5,7 +5,6 @@ import android.content.ContentValues.TAG
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,11 +13,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,24 +34,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.R
-import com.google.firebase.Firebase
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
-//lateinit var auth: FirebaseAuth
+
 
 @Composable
-fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    lateinit var auth: FirebaseAuth
-    auth = Firebase.auth
+fun LoginScreen(authenticator: FirebaseAuth, database: FirebaseFirestore, navController: NavHostController, modifier: Modifier = Modifier) {
     val quicksand = FontFamily(Font(R.font.quicksand_regular))
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -182,10 +172,32 @@ fun LoginScreen(navController: NavHostController, modifier: Modifier = Modifier)
                     if (emailValue.isNotBlank() && passwordValue.isNotBlank()) {
                         // Initialize Firebase Auth
                         loading = true
-                        auth.signInWithEmailAndPassword(emailValue, passwordValue)
+                        authenticator.signInWithEmailAndPassword(emailValue, passwordValue)
                             .addOnCompleteListener { task ->
                                 loading = false
                                 if (task.isSuccessful) {
+                                    val currentUser = authenticator.currentUser
+                                    val uid = currentUser?.uid
+                                    Log.d("userid", uid!!)
+                                    val userRef = database.collection("users").document(uid)
+                                    userRef.get()
+                                        .addOnSuccessListener { documentSnapshot ->
+                                            if (documentSnapshot.exists()) {
+                                                val userData = documentSnapshot.data
+                                                Log.d("Firestore", "User data: $userData")
+                                                UserManager.documentReferenceID = uid!!;
+                                                UserManager.userName = userData?.get("name") as String;
+                                                Log.d("name", UserManager.userName!!)
+                                                UserManager.userBirthday = userData?.get("birthday") as String;
+                                                UserManager.userHeight = userData?.get("height") as String;
+                                                UserManager.userWeight = userData?.get("weight") as String;
+                                                UserManager.userSex = userData?.get("sex") as String;
+                                                UserManager.userEmail = userData?.get("email") as String;
+                                                UserManager.fitnessLevel = userData?.get("fitnessLevel") as String;
+                                            } else {
+                                                Log.d("Firestore", "No such document.")
+                                            }
+                                        }
                                     // Sign in success, navigate to home screen
                                     Log.d(TAG, "signInWithEmail:success")
                                     navController.navigate("home_screen")
@@ -230,6 +242,9 @@ fun MyButton(text: String, onNextClicked: () -> Unit) {
         shape = RoundedCornerShape(10.dp),
     ) {
         Text(
+            fontFamily = FontFamily(
+                Font(R.font.quicksand_bold, FontWeight.Bold)
+            ),
             text = text,
             fontSize = 20.sp,
             color = Color.White
@@ -256,13 +271,14 @@ fun SignUpText(navController: NavController) {
     )
 }
 
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
     FitLifeBuddyTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            LoginScreen(navController = rememberNavController())
+            LoginScreen(Firebase.auth, FirebaseFirestore.getInstance(), navController = rememberNavController())
         }
     }
 }
+ */

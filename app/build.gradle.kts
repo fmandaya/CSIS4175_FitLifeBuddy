@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -72,10 +74,15 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.play.services.places)
     implementation(libs.play.services.maps)
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation(platform(libs.firebase.bom.v3360))
     implementation(libs.firebase.auth)
     implementation(libs.androidx.material.icons.extended)
-
-
-
+    implementation("com.google.firebase:firebase-firestore:25.1.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
 }

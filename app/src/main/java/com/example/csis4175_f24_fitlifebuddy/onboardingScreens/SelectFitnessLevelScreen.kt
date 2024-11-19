@@ -1,5 +1,6 @@
 package com.example.csis4175_f24_fitlifebuddy.onboardingScreens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,10 +13,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,22 +27,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.MyButton
-import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.material3.CircularProgressIndicator
 
 @Composable
-fun SelectFitnessLevelScreen(navController: NavHostController) {
+fun SelectFitnessLevelScreen(database: FirebaseFirestore, navController: NavHostController) {
+    var loading by remember { mutableStateOf(false) } // Loading state
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
     val quicksand = FontFamily(Font(R.font.quicksand_regular))
     var selectedIndex by remember { mutableStateOf(-1) }
     val fitnessLevels = listOf("Beginner", "Intermediate", "Advanced")
@@ -51,13 +57,11 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
         "You're fit and ready for an intensive workout plan"
     )
 
-    // Get the current context
     val context = LocalContext.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-
     ) {
         Image(
             painter = painterResource(id = R.drawable.fitnesslvl_bg),
@@ -67,19 +71,27 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
         )
         Column(
             modifier = Modifier
-                .padding(start = 25.dp, end = 25.dp, top = 350.dp),
-            verticalArrangement = Arrangement.Center,
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Spacer(modifier = Modifier.height(screenHeight * 0.3f))
             Text(
                 text = "Select Your Fitness Level",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,  // Smaller font size for better responsiveness
+                fontWeight = FontWeight.ExtraBold,
                 color = Color.Black,
-                fontFamily = quicksand
+                fontFamily = FontFamily(
+                    Font(R.font.quicksand_bold, FontWeight.Bold)
+                ),
             )
-            Spacer(modifier = Modifier.height(20.dp))
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                      // Makes the list expand to use available space
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 itemsIndexed(fitnessLevels) { index, level ->
                     FitnessLevelItem(
                         level = level,
@@ -89,25 +101,41 @@ fun SelectFitnessLevelScreen(navController: NavHostController) {
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            MyButton("NEXT") {
+            Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+            if(loading) {
+                CircularProgressIndicator(
+                    color = Color(0xFFD05C29),
+                    modifier = Modifier.size(50.dp)
+                )
+            } else {
+                MyButton("Next") {
                 if (selectedIndex == -1) {
-                    Toast.makeText(
-                        context,
-                        "You must select your fitness level.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    onNextClick(navController)
+                        Toast.makeText(
+                            context,
+                            "You must select your fitness level.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        loading = true;
+                        val userRef = database.collection("users").document(UserManager.documentReferenceID)
+                        userRef.update("fitnessLevel", fitnessLevels.get(selectedIndex))
+                            .addOnSuccessListener {
+                                Log.d("Firestore", "Fitness Level Successfully Added!")
+                                Toast.makeText(
+                                    navController.context,
+                                    "Fitness Level Successfully Added!",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                                navController.navigate("login_screen")
+                            }
+                            .addOnFailureListener { e -> Log.w("Firestore", "Error Adding Fitness Level", e) }
+                        loading = false
+                    }
                 }
 
             }
         }
     }
-}
-
-fun onNextClick(navController: NavHostController) {
-    navController.navigate("home_screen")
 }
 
 @Composable
@@ -118,39 +146,49 @@ fun FitnessLevelItem(
     onClick: () -> Unit
 ) {
     val backgroundColor = if (isSelected) Color(0xFFD05C29) else Color.LightGray
-    val textColor = if (isSelected) Color.Black else Color.Black
+    val textColor = Color.Black
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 8.dp)
             .background(backgroundColor, shape = RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)  // Adds space between text elements
+        ) {
             Text(
                 text = level,
-                fontSize = 20.sp,
+                fontSize = 18.sp,  // Slightly smaller font for responsiveness
                 fontWeight = FontWeight.Bold,
-                color = textColor
+                color = textColor,
+                fontFamily = FontFamily(
+                    Font(R.font.quicksand_semibold, FontWeight.Bold)
+                ),
+
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
-                fontSize = 16.sp,
-                color = textColor
+                fontSize = 14.sp,
+                color = textColor,
+                fontFamily = FontFamily(
+                    Font(R.font.quicksand_regular, FontWeight.Bold)
+                ),
             )
         }
     }
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun FitnessLevelScreenPreview() {
     FitLifeBuddyTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            SelectFitnessLevelScreen(navController = rememberNavController())
+            SelectFitnessLevelScreen(database = FirebaseFirestore.getInstance(), navController = rememberNavController())
         }
     }
 }
+ */

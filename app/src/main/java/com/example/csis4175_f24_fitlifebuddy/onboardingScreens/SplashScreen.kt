@@ -27,10 +27,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+fun SplashScreen(authenticator: FirebaseAuth, navController: NavHostController, modifier: Modifier = Modifier) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val topPadding = screenHeight * 0.1f // Adjusts to 10% of screen height
@@ -67,7 +70,11 @@ fun SplashScreen(navController: NavHostController, modifier: Modifier = Modifier
     // Navigate to the next screen after a delay
     LaunchedEffect(Unit) {
         delay(2000) // Splash screen delay in milliseconds (2 seconds)
-        navController.navigate("onboarding_screen_one")
+        if (authenticator.currentUser == null) {
+            navController.navigate("onboarding_screen_one")
+        } else {
+            navController.navigate("home_screen")
+        }
     }
 }
 
@@ -76,7 +83,7 @@ fun SplashScreen(navController: NavHostController, modifier: Modifier = Modifier
 fun SplashScreenPreview() {
     FitLifeBuddyTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            SplashScreen(navController = rememberNavController())
+            SplashScreen(Firebase.auth,navController = rememberNavController())
         }
     }
 }
