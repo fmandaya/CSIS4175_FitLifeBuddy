@@ -2,4 +2,17 @@
 <resources>
 
     <style name="Theme.CSIS4175_F24_FitLifeBuddy" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Orange DatePicker Theme -->
+    <style name="OrangeDatePicker" parent="Theme.Material3.Light.Dialog">
+        <item name="colorPrimary">#FFD05C29</item> <!-- Orange -->
+        <item name="colorOnPrimary">#FFFFFF</item> <!-- White text on primary -->
+        <item name="android:datePickerStyle">@style/OrangeDatePickerStyle</item>
+    </style>
+
+    <!-- Orange DatePicker Widget Style -->
+    <style name="OrangeDatePickerStyle" parent="android:Widget.Material.DatePicker"> <!-- Use Material2 DatePicker -->
+        <item name="colorAccent">#FFD05C29</item> <!-- Orange for selection -->
+    </style>
+
 </resources>

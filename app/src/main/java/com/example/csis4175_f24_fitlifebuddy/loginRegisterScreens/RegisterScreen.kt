@@ -331,14 +331,7 @@ fun RegisterScreen(authenticator: FirebaseAuth, database: FirebaseFirestore, nav
                             isValidPassword(passwordValue)
                         ) {
                             loading = true // Start loading
-                            val user = hashMapOf(
-                                "name" to nameValue,
-                                "birthday" to birthdayValue,
-                                "height" to heightValue,
-                                "weight" to weightValue,
-                                "sex" to sexValue,
-                                "email" to emailValue
-                            )
+
 
 
                             authenticator.createUserWithEmailAndPassword(emailValue, passwordValue)
@@ -348,7 +341,16 @@ fun RegisterScreen(authenticator: FirebaseAuth, database: FirebaseFirestore, nav
                                         Log.d(TAG, "createUserWithEmail:success")
                                         val currentUser = authenticator.currentUser
                                         val uid = currentUser!!.uid
-                                        val userRef = database.collection("users").document(uid)
+                                        val userRef = database.collection("users").document(uid);
+                                        val user = hashMapOf(
+                                            "userID" to uid,
+                                            "name" to nameValue,
+                                            "birthday" to birthdayValue,
+                                            "height" to heightValue,
+                                            "weight" to weightValue,
+                                            "sex" to sexValue,
+                                            "email" to emailValue
+                                        )
                                         userRef.set(user)
                                             .addOnSuccessListener { documentReference ->
                                                 Log.d("Firestore", "DocumentSnapshot added with ID: ${uid}")

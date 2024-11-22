@@ -178,7 +178,7 @@ fun NutritionalDetailRow(label: String, value: String) {
     }
 }
 
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun FoodDetailsScreenPreview() {
@@ -209,3 +209,4 @@ fun FoodDetailsScreenPreview() {
         )
     }
 }
+ */
