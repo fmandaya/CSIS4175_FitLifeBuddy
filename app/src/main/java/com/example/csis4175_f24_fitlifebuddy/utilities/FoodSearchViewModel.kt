@@ -52,4 +52,25 @@ class FoodSearchViewModel : ViewModel() {
             }
         }
     }
+
+    suspend fun getProductDetailsForNutritionHistoryScreen(productID: String): Product? {
+        isLoading = true
+        return try {
+            // Fetch product details using productID
+            val response = RetrofitInstance.api.getProductDetails(productID)
+
+            if (response.product != null) {
+                Log.d("Product Details", "Fetched Product: ${response.product}")
+                response.product
+            } else {
+                Log.w("Product Details", "No product found for ID: $productID")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("FoodSearchViewModel", "Error fetching product by ID: ${e.message}")
+            null
+        } finally {
+            isLoading = false
+        }
+    }
 }

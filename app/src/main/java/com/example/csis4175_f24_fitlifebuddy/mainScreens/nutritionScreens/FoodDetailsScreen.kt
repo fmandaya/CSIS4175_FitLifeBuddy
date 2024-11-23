@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +49,7 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.Nutriments
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.Product
+
 @Composable
 fun FoodDetailsScreen(navController: NavHostController, viewModel: FoodSearchViewModel) {
     val foodItem = viewModel.selectedProduct
@@ -138,8 +141,11 @@ fun NutritionalLabel(foodItem: Product) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        // Make the content scrollable
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             NutritionalDetailRow(label = "Calories", value = "${foodItem.nutriments?.energy_kcal_100g ?: "N/A"} kcal")
@@ -152,7 +158,6 @@ fun NutritionalLabel(foodItem: Product) {
         }
     }
 }
-
 @Composable
 fun NutritionalDetailRow(label: String, value: String) {
     Row(
@@ -177,6 +182,8 @@ fun NutritionalDetailRow(label: String, value: String) {
         )
     }
 }
+
+
 
 /*
 @Preview(showBackground = true)

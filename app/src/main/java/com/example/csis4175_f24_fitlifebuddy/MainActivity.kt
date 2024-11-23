@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                             WorkoutPlanScreen(navController = navController)
                         }
                         composable("nutrition_history_screen") {
-                            NutritionHistoryScreen(navController = navController)
+                            NutritionHistoryScreen(navController = navController, viewModel = viewModel)
                         }
                         composable("food_search_screen") {
                             FoodSearchScreen(navController = navController, viewModel = viewModel)

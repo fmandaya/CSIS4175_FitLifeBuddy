@@ -1,5 +1,8 @@
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.util.Log
 import android.view.ContextThemeWrapper
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -43,8 +47,13 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
+import com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens.NutritionalDetailRow
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.Product
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -52,55 +61,82 @@ import java.util.*
 fun FoodSearchScreen(navController: NavHostController, viewModel: FoodSearchViewModel) {
     var searchText by remember { mutableStateOf("") }
 
-
     Scaffold(
         containerColor = Color.White,
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Title
-            Text(
-                text = "Food Search",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(R.font.quicksand_bold)),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = Color(0xFFD05C29),
-                    textAlign = TextAlign.Center
-                ),
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.nutrition_background), // Replace with your image resource
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
+                    .fillMaxSize()
+                    .alpha(0.4f) // Adjust transparency for better visibility of content
             )
 
-            // Search Bar
-            SearchBar(
-                searchText = searchText,
-                onTextChange = { searchText = it },
-                onSearch = { viewModel.searchFood(searchText) }
-            )
-
-            // Content: Loading or Results
-            if (viewModel.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFFD05C29))
-                }
-            } else {
-                LazyColumn(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                // Title
+                Text(
+                    text = "Food Search",
+                    style = TextStyle(
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        color = Color(0xFFD05C29),
+                        textAlign = TextAlign.Center
+                    ),
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .fillMaxWidth()
+                        .padding(top = 20.dp)
+                )
+
+                // Search Bar
+                SearchBar(
+                    searchText = searchText,
+                    onTextChange = { searchText = it },
+                    onSearch = { viewModel.searchFood(searchText) }
+                )
+
+                // Spacer to provide space between SearchBar and Results
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Content: Loading or Results
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f) // Distribute remaining space to this Box
                 ) {
-                    items(viewModel.foodItems) { foodItem ->
-                        FoodItemCard(foodItem, navController = navController, viewModel = viewModel)
+                    if (viewModel.isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFFD05C29))
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp), // Add horizontal padding to the entire list
+                            verticalArrangement = Arrangement.spacedBy(12.dp) // Spacing between cards
+                        ) {
+                            items(viewModel.foodItems) { foodItem ->
+                                FoodItemCard(
+                                    foodItem = foodItem,
+                                    navController = navController,
+                                    viewModel = viewModel
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -183,6 +219,7 @@ fun FoodItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 8.dp) // Add padding inside each card to create space
             .wrapContentHeight()
             .clickable {
                 // Navigate to food details screen on card tap
@@ -399,7 +436,16 @@ fun FoodItemCard(
 
                 // Add Button
                 Button(
-                    onClick = { isExpanded = false },
+                    onClick = {
+                            addFoodItemToFirestore(
+                                foodItem = foodItem,
+                                servings = servings,
+                                selectedMeal = selectedMeal,
+                                date = selectedDate,
+                                navController = navController
+                            )
+                            isExpanded = false
+                              },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD05C29)),
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
@@ -463,3 +509,54 @@ fun ThemedDatePickerDialog(
         }
     }
 }
+
+
+
+fun addFoodItemToFirestore(
+    foodItem: Product,
+    servings: String,
+    selectedMeal: String,
+    date: String,
+    navController: NavHostController
+) {
+    val firestore = FirebaseFirestore.getInstance()
+    val auth = Firebase.auth
+    val currentUser = auth.currentUser
+    val uid = currentUser?.uid ?: return // Ensure user is authenticated
+
+    // Create a unique document key using date and timestamp
+    val documentKey = "$date ${System.currentTimeMillis()}"
+
+    // Reference to the user's food history collection
+    val ref = firestore.collection("users").document(uid).collection("foodHistory").document(documentKey)
+
+    // Minimal data to store
+    val foodItemMap = mapOf(
+        "userID" to uid,
+        "productID" to foodItem.product_ID,
+        "productName" to foodItem.product_name,
+        "servings" to servings,
+        "meal" to selectedMeal,
+        "date" to date
+    )
+
+    // Save the data using `set()`
+    ref.set(foodItemMap)
+        .addOnSuccessListener {
+            Log.d("Firebase", "Food item added successfully with ID: $uid")
+            Toast.makeText(
+                navController.context,
+                "Food item added successfully with ID: $uid and Food ID: ${foodItem.product_ID}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        .addOnFailureListener {
+            Log.e("Firebase", "Error adding food item: ${it.message}")
+            Toast.makeText(
+                navController.context,
+                "Error adding food item",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+}
+

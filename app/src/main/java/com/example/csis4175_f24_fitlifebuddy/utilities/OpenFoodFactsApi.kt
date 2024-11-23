@@ -2,6 +2,7 @@ package com.example.csis4175_f24_fitlifebuddy.utilities
 
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.FoodResponse
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.SearchResponse
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -19,5 +20,10 @@ interface OpenFoodFactsApi {
         @Query("tag_0") tag: String = "Canada",
         @Query("json") json: Int = 1
     ): SearchResponse
+
+    @GET("api/v0/product/{id}.json")
+    suspend fun getProductDetails(
+        @Path("id") productID: String
+    ): FoodResponse
 }
 
