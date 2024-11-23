@@ -29,9 +29,13 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.FoodResponse
 import com.google.android.libraries.places.api.Places
+
+import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.Firebase
+
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +49,8 @@ class MainActivity : ComponentActivity() {
                     val db = FirebaseFirestore.getInstance()
                     val navController = rememberNavController()
                     val viewModel = FoodSearchViewModel()
-                    // Initialize the Places API
                     if (!Places.isInitialized()) {
-                        Places.initialize(this, "AIzaSyAe6r_-1fVe1GeK4JpwEuekzI1sjA6RPHY")
+                        Places.initialize(this, BuildConfig.API_KEY)
                     }
                     NavHost(navController = navController, startDestination = "splash_screen") {
                         composable("splash_screen") {

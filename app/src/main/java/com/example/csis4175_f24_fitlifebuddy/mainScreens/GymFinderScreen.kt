@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.csis4175_f24_fitlifebuddy.BuildConfig
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -91,7 +92,7 @@ fun GymFinder(padding: Dp) {
     LaunchedEffect(Unit) {
         fetchNearbyGyms(
             location = LatLng(49.2036, -122.9127), // Example: Vancouver, BC
-            apiKey = "AIzaSyAe6r_-1fVe1GeK4JpwEuekzI1sjA6RPHY",
+            apiKey = BuildConfig.API_KEY,
             gyms = gyms,
             cameraPositionState = cameraPositionState
         )
