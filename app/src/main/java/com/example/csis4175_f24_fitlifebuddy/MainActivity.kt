@@ -1,10 +1,13 @@
 package com.example.csis4175_f24_fitlifebuddy
 
 import FoodSearchScreen
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -16,8 +19,8 @@ import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.LoginScreen
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.RegisterScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.GymFinderScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.HomeScreen
+import com.example.csis4175_f24_fitlifebuddy.mainScreens.ProfileScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens.NutritionHistoryScreen
-import com.example.csis4175_f24_fitlifebuddy.mainScreens.SettingsScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.WorkoutPlanScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens.FoodDetailsScreen
 import com.example.csis4175_f24_fitlifebuddy.onboardingScreens.OnboardingScreenOne
@@ -28,16 +31,21 @@ import com.example.csis4175_f24_fitlifebuddy.onboardingScreens.SplashScreen
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.FoodResponse
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
 import com.google.android.libraries.places.api.Places
-
+import kotlinx.coroutines.tasks.await
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-
-
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -97,8 +105,8 @@ class MainActivity : ComponentActivity() {
                         composable("gym_finder_screen") {
                             GymFinderScreen(navController = navController)
                         }
-                        composable("settings_screen") {
-                            SettingsScreen(navController = navController)
+                        composable("profile_screen") {
+                            ProfileScreen(navController = navController)
                         }
                        // composable("profile_screen") { /* Profile code here */ }
                        // composable("exercise_demos_screen") { /* Exercise Demos code here */ }
@@ -107,6 +115,42 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+suspend fun initializeApp(
+    authenticator: FirebaseAuth = Firebase.auth,
+    database: FirebaseFirestore = FirebaseFirestore.getInstance()
+): Boolean {
+    val currentUser = authenticator.currentUser
+    return if (currentUser != null) {
+        val uid = currentUser.uid
+        try {
+            val documentSnapshot = suspendCoroutine<DocumentSnapshot> { continuation ->
+                database.collection("users").document(uid).get()
+                    .addOnSuccessListener { continuation.resume(it) }
+                    .addOnFailureListener { continuation.resumeWithException(it) }
+            }
+            if (documentSnapshot.exists()) {
+                val userData = documentSnapshot.data
+                UserManager.documentReferenceID = uid
+                UserManager.userName = userData?.get("name") as? String ?: ""
+                UserManager.userBirthday = userData?.get("birthday") as? String ?: ""
+                UserManager.userHeight = userData?.get("height") as? String ?: ""
+                UserManager.userWeight = userData?.get("weight") as? String ?: ""
+                UserManager.userSex = userData?.get("sex") as? String ?: ""
+                UserManager.userEmail = userData?.get("email") as? String ?: ""
+                UserManager.fitnessLevel = userData?.get("fitnessLevel") as? String ?: ""
+                true
+            } else {
+                false // User document does not exist
+            }
+        } catch (e: Exception) {
+            Log.e("initializeApp", "Error initializing app: ${e.message}")
+            false
+        }
+    } else {
+        false // User not logged in
     }
 }
 

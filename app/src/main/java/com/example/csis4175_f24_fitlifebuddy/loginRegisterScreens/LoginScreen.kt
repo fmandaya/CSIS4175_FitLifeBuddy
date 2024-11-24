@@ -172,45 +172,20 @@ fun LoginScreen(authenticator: FirebaseAuth, database: FirebaseFirestore, navCon
                     if (emailValue.isNotBlank() && passwordValue.isNotBlank()) {
                         // Initialize Firebase Auth
                         loading = true
-                        authenticator.signInWithEmailAndPassword(emailValue, passwordValue)
-                            .addOnCompleteListener { task ->
+                        performLogin(
+                            authenticator,
+                            database,
+                            emailValue,
+                            passwordValue,
+                            onSuccess = {
                                 loading = false
-                                if (task.isSuccessful) {
-                                    val currentUser = authenticator.currentUser
-                                    val uid = currentUser?.uid
-                                    Log.d("userid", uid!!)
-                                    val userRef = database.collection("users").document(uid)
-                                    userRef.get()
-                                        .addOnSuccessListener { documentSnapshot ->
-                                            if (documentSnapshot.exists()) {
-                                                val userData = documentSnapshot.data
-                                                Log.d("Firestore", "User data: $userData")
-                                                UserManager.documentReferenceID = uid!!;
-                                                UserManager.userName = userData?.get("name") as String;
-                                                Log.d("name", UserManager.userName!!)
-                                                UserManager.userBirthday = userData?.get("birthday") as String;
-                                                UserManager.userHeight = userData?.get("height") as String;
-                                                UserManager.userWeight = userData?.get("weight") as String;
-                                                UserManager.userSex = userData?.get("sex") as String;
-                                                UserManager.userEmail = userData?.get("email") as String;
-                                                UserManager.fitnessLevel = userData?.get("fitnessLevel") as String;
-                                            } else {
-                                                Log.d("Firestore", "No such document.")
-                                            }
-                                        }
-                                    // Sign in success, navigate to home screen
-                                    Log.d(TAG, "signInWithEmail:success")
-                                    navController.navigate("home_screen")
-                                } else {
-                                    // Sign in fails, display an error message
-                                    Log.w(TAG, "signInWithEmail:failure", task.exception)
-                                    Toast.makeText(
-                                        navController.context,
-                                        "Authentication failed.",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
+                                navController.navigate("home_screen")
+                            },
+                            onFailure = { errorMessage ->
+                                loading = false
+                                Toast.makeText(navController.context, errorMessage, Toast.LENGTH_SHORT).show()
                             }
+                        )
                     } else {
                         // Display a message if email or password is missing
                         Toast.makeText(
@@ -282,3 +257,54 @@ fun LoginScreenPreview() {
     }
 }
  */
+
+
+fun performLogin(
+    authenticator: FirebaseAuth,
+    database: FirebaseFirestore,
+    email: String,
+    password: String,
+    onSuccess: () -> Unit,
+    onFailure: (String) -> Unit
+) {
+    if (email.isNotBlank() && password.isNotBlank()) {
+        authenticator.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val currentUser = authenticator.currentUser
+                    val uid = currentUser?.uid
+                    if (uid != null) {
+                        val userRef = database.collection("users").document(uid)
+                        userRef.get()
+                            .addOnSuccessListener { documentSnapshot ->
+                                if (documentSnapshot.exists()) {
+                                    val userData = documentSnapshot.data
+                                    UserManager.documentReferenceID = uid
+                                    UserManager.userName = userData?.get("name") as String
+                                    UserManager.userBirthday = userData?.get("birthday") as String
+                                    UserManager.userHeight = userData?.get("height") as String
+                                    UserManager.userWeight = userData?.get("weight") as String
+                                    UserManager.userSex = userData?.get("sex") as String
+                                    UserManager.userEmail = userData?.get("email") as String
+                                    UserManager.fitnessLevel = userData?.get("fitnessLevel") as String
+                                    onSuccess()
+                                } else {
+                                    onFailure("User data not found.")
+                                }
+                            }
+                            .addOnFailureListener { exception ->
+                                onFailure("Error fetching user data: ${exception.message}")
+                            }
+                    } else {
+                        onFailure("User ID not found.")
+                    }
+                } else {
+                    onFailure("Authentication failed: ${task.exception?.message}")
+                }
+            }
+    } else {
+        onFailure("Please fill in both email and password.")
+    }
+}
+
+

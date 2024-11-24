@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
@@ -33,7 +34,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         //  Pair("exercise_demos_screen", R.drawable.widget_exercisedemos),
         Pair("home_screen", Icons.Filled.Home),
         Pair("gym_finder_screen", Icons.Filled.Place),
-        Pair("settings_screen", Icons.Filled.Settings)
+        Pair("profile_screen", Icons.Filled.Person)
     )
 
     // Map routes to their parent menu items
