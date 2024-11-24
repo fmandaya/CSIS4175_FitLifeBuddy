@@ -97,6 +97,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.compose.material3:material3:1.2.0-alpha03")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
     // Google Maps Compose and Play Services Maps
     implementation("com.google.maps.android:maps-compose:2.11.0")
     implementation("com.google.android.gms:play-services-maps:18.1.0")

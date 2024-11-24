@@ -1,5 +1,6 @@
 package com.example.csis4175_f24_fitlifebuddy.mainScreens
 
+import android.content.Context
 import android.os.CountDownTimer
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -9,33 +10,33 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
-import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 data class Exercise(
     val name: String,
@@ -44,8 +45,36 @@ data class Exercise(
     val description: String // Description of the exercise
 )
 
+val firestore = FirebaseFirestore.getInstance()
+
+data class ExerciseState(
+    val progress: Float = 0f,
+    val isChecked: Boolean = false
+)
+
+suspend fun saveExerciseState(userId: String, index: Int, state: ExerciseState) {
+    firestore.collection("users")
+        .document(userId)
+        .collection("workoutProgress")
+        .document("exercise_$index")
+        .set(state)
+        .await()
+}
+
+suspend fun loadExerciseState(userId: String, index: Int): ExerciseState {
+    val document = firestore.collection("users")
+        .document(userId)
+        .collection("workoutProgress")
+        .document("exercise_$index")
+        .get()
+        .await()
+
+    return document.toObject(ExerciseState::class.java) ?: ExerciseState()
+}
+
+
 @Composable
-fun WorkoutPlanScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier: Modifier = Modifier) {
     val exercises = listOf(
         Exercise(
             name = "Push-Ups",
@@ -79,20 +108,34 @@ fun WorkoutPlanScreen(navController: NavHostController, modifier: Modifier = Mod
         )
     )
 
-    // Initialize progress states for each exercise
-    val progressStates = remember { mutableStateListOf(*Array(exercises.size) { 0f }) }
+    val coroutineScope = rememberCoroutineScope()
+    val exerciseStates = remember { mutableStateListOf<ExerciseState>() }
+
+    // Fetch exercise states from Firebase
+    LaunchedEffect(Unit) {
+        exerciseStates.clear()
+        coroutineScope.launch {
+            exercises.indices.forEach { index ->
+                val state = loadExerciseState(userId, index)
+                exerciseStates.add(state)
+            }
+        }
+    }
+
+    // Calculate overall progress
+    val overallProgress = if (exerciseStates.isEmpty()) 0f else {
+        exerciseStates.count { it.isChecked }.toFloat() / exercises.size
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             // Background Image
             Image(
                 painter = painterResource(id = R.drawable.bg_workoutplan),
-                contentDescription = "Background Image",
+                contentDescription = "Workout Plan Background",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -103,6 +146,7 @@ fun WorkoutPlanScreen(navController: NavHostController, modifier: Modifier = Mod
                     .padding(innerPadding)
                     .padding(32.dp)
             ) {
+                // Title
                 Text(
                     text = "Workout Plan",
                     style = TextStyle(
@@ -112,24 +156,71 @@ fun WorkoutPlanScreen(navController: NavHostController, modifier: Modifier = Mod
                         color = Color(0xFFD05C29),
                         textAlign = TextAlign.Center
                     ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 )
 
+                // Overall Progress Bar
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(16.dp)
+                            .background(Color(0xFFE0E0E0))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(overallProgress)
+                                .fillMaxHeight()
+                                .background(Color(0xFFFF4E00))
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .width(210.dp)
+                            .background(
+                                color = Color.Gray.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clip(RoundedCornerShape(12.dp))
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Overall Progress: ${(overallProgress * 100).toInt()}%",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp,
+                                color = Color.White
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // Exercise List
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     itemsIndexed(exercises) { index, exercise ->
                         ExerciseItem(
                             exercise = exercise,
-                            progress = progressStates[index],
-                            navController = navController,
-                            onDone = { progressStates[index] = 1f } // Update progress to 100% when done
-                        )
+                            state = exerciseStates.getOrNull(index) ?: ExerciseState(),
+                            index = index,
+                            userId = userId,
+                            navController = navController
+                        ) { newState ->
+                            coroutineScope.launch {
+                                saveExerciseState(userId, index, newState)
+                                exerciseStates[index] = newState
+                            }
+                        }
                     }
                 }
             }
@@ -137,63 +228,79 @@ fun WorkoutPlanScreen(navController: NavHostController, modifier: Modifier = Mod
     }
 }
 
+
 @Composable
 fun ExerciseItem(
     exercise: Exercise,
-    progress: Float,
+    state: ExerciseState,
+    index: Int,
+    userId: String,
     navController: NavHostController,
-    onDone: () -> Unit
+    onExerciseDone: suspend (ExerciseState) -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                val encodedUrl = URLEncoder.encode(exercise.videoUrl, StandardCharsets.UTF_8.toString())
-                val encodedDescription = URLEncoder.encode(exercise.description, StandardCharsets.UTF_8.toString())
-                navController.navigate(
-                    "youtube_player/$encodedUrl/${exercise.name}/${exercise.duration}/$encodedDescription"
-                )
-            },
+            .padding(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F8F8)),
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = exercise.name,
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.Black
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = exercise.description,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Progress Bar
-            Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            // Check/Uncheck icon based on Firebase state
+            Image(
+                painter = painterResource(if (state.isChecked) R.drawable.check else R.drawable.uncheck),
+                contentDescription = if (state.isChecked) "Checked" else "Unchecked",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .background(Color(0xFFE0E0E0)) // Background color
+                    .size(48.dp)
+                    .clickable(enabled = !state.isChecked) {
+                        coroutineScope.launch {
+                            val updatedState = ExerciseState(progress = 1f, isChecked = true)
+                            onExerciseDone(updatedState)
+                        }
+                    }
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Exercise Details
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        val encodedUrl = URLEncoder.encode(exercise.videoUrl, StandardCharsets.UTF_8.toString())
+                        val encodedDescription = URLEncoder.encode(exercise.description, StandardCharsets.UTF_8.toString())
+                        navController.navigate(
+                            "youtube_player/$encodedUrl/${exercise.name}/${exercise.duration}/$encodedDescription"
+                        )
+                    }
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(progress)
-                        .fillMaxHeight()
-                        .background(Color(0xFFD05C29)) // Progress color
+                Text(
+                    text = exercise.name,
+                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = exercise.description,
+                    style = TextStyle(fontSize = 14.sp, color = Color.Gray)
                 )
             }
         }
     }
 }
+
+
+
+
+
+
+
+
 
 @Composable
 fun YouTubePlayerScreen(
@@ -346,20 +453,6 @@ fun YouTubePlayerScreen(
                 ) {
                     Text(text = "Reset", color = Color.Gray)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                onClick = {
-                    onExerciseDone() // Update progress to 100%
-                    navController.navigateUp()
-                },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD05C29))
-            ) {
-                Text(text = "Done", color = Color.White)
             }
         }
     }

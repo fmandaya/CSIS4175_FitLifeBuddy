@@ -96,7 +96,8 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(navController = navController)
                         }
                         composable("workout_plan_screen") {
-                            WorkoutPlanScreen(navController = navController)
+                            val userId = auth.currentUser?.uid.orEmpty() // Get the current user's ID
+                            WorkoutPlanScreen(navController = navController, userId = userId)
                         }
                         composable(
                             route = "youtube_player/{videoUrl}/{exerciseName}/{duration}/{description}",
