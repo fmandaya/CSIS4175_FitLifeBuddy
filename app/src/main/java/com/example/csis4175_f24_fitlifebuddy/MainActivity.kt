@@ -1,24 +1,30 @@
 package com.example.csis4175_f24_fitlifebuddy
 
 import FoodSearchScreen
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.LoginScreen
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.RegisterScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.GymFinderScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.HomeScreen
+import com.example.csis4175_f24_fitlifebuddy.mainScreens.ProfileScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens.NutritionHistoryScreen
-import com.example.csis4175_f24_fitlifebuddy.mainScreens.SettingsScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.WorkoutPlanScreen
+import com.example.csis4175_f24_fitlifebuddy.mainScreens.YouTubePlayerScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens.FoodDetailsScreen
 import com.example.csis4175_f24_fitlifebuddy.onboardingScreens.OnboardingScreenOne
 import com.example.csis4175_f24_fitlifebuddy.onboardingScreens.OnboardingScreenThree
@@ -28,16 +34,23 @@ import com.example.csis4175_f24_fitlifebuddy.onboardingScreens.SplashScreen
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.FoodResponse
+import com.example.csis4175_f24_fitlifebuddy.utilities.model.UserManager
 import com.google.android.libraries.places.api.Places
-
+import kotlinx.coroutines.tasks.await
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-
-
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -85,6 +98,36 @@ class MainActivity : ComponentActivity() {
                         composable("workout_plan_screen") {
                             WorkoutPlanScreen(navController = navController)
                         }
+                        composable(
+                            route = "youtube_player/{videoUrl}/{exerciseName}/{duration}/{description}",
+                            arguments = listOf(
+                                navArgument("videoUrl") { type = NavType.StringType },
+                                navArgument("exerciseName") { type = NavType.StringType },
+                                navArgument("duration") { type = NavType.IntType },
+                                navArgument("description") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val videoUrl = backStackEntry.arguments?.getString("videoUrl") ?: ""
+                            val exerciseName = backStackEntry.arguments?.getString("exerciseName") ?: "Exercise"
+                            val duration = backStackEntry.arguments?.getInt("duration") ?: 3
+                            val description = try {
+                                URLDecoder.decode(
+                                    backStackEntry.arguments?.getString("description") ?: "No description available",
+                                    StandardCharsets.UTF_8.toString()
+                                )
+                            } catch (e: Exception) {
+                                "No description available"
+                            }
+
+                            YouTubePlayerScreen(
+                                navController = navController,
+                                videoUrl = videoUrl,
+                                exerciseName = exerciseName,
+                                duration = duration,
+                                description = description,
+                                onExerciseDone = { /* Update progress in WorkoutPlanScreen */ }
+                            )
+                        }
                         composable("nutrition_history_screen") {
                             NutritionHistoryScreen(navController = navController, viewModel = viewModel)
                         }
@@ -97,16 +140,52 @@ class MainActivity : ComponentActivity() {
                         composable("gym_finder_screen") {
                             GymFinderScreen(navController = navController)
                         }
-                        composable("settings_screen") {
-                            SettingsScreen(navController = navController)
+                        composable("profile_screen") {
+                            ProfileScreen(navController = navController)
                         }
-                       // composable("profile_screen") { /* Profile code here */ }
-                       // composable("exercise_demos_screen") { /* Exercise Demos code here */ }
-                       // composable("progress_tracker") { /* Progress Tracker code here */ }
+                        // composable("profile_screen") { /* Profile code here */ }
+                        // composable("exercise_demos_screen") { /* Exercise Demos code here */ }
+                        // composable("progress_tracker") { /* Progress Tracker code here */ }
                     }
                 }
             }
         }
+    }
+}
+
+suspend fun initializeApp(
+    authenticator: FirebaseAuth = Firebase.auth,
+    database: FirebaseFirestore = FirebaseFirestore.getInstance()
+): Boolean {
+    val currentUser = authenticator.currentUser
+    return if (currentUser != null) {
+        val uid = currentUser.uid
+        try {
+            val documentSnapshot = suspendCoroutine<DocumentSnapshot> { continuation ->
+                database.collection("users").document(uid).get()
+                    .addOnSuccessListener { continuation.resume(it) }
+                    .addOnFailureListener { continuation.resumeWithException(it) }
+            }
+            if (documentSnapshot.exists()) {
+                val userData = documentSnapshot.data
+                UserManager.documentReferenceID = uid
+                UserManager.userName = userData?.get("name") as? String ?: ""
+                UserManager.userBirthday = userData?.get("birthday") as? String ?: ""
+                UserManager.userHeight = userData?.get("height") as? String ?: ""
+                UserManager.userWeight = userData?.get("weight") as? String ?: ""
+                UserManager.userSex = userData?.get("sex") as? String ?: ""
+                UserManager.userEmail = userData?.get("email") as? String ?: ""
+                UserManager.fitnessLevel = userData?.get("fitnessLevel") as? String ?: ""
+                true
+            } else {
+                false // User document does not exist
+            }
+        } catch (e: Exception) {
+            Log.e("initializeApp", "Error initializing app: ${e.message}")
+            false
+        }
+    } else {
+        false // User not logged in
     }
 }
 
