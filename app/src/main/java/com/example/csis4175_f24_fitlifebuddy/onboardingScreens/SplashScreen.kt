@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.csis4175_f24_fitlifebuddy.R
+import com.example.csis4175_f24_fitlifebuddy.initializeApp
 import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -69,10 +70,11 @@ fun SplashScreen(authenticator: FirebaseAuth, navController: NavHostController, 
 
     // Navigate to the next screen after a delay
     LaunchedEffect(Unit) {
-        delay(2000) // Splash screen delay in milliseconds (2 seconds)
+     //   delay(2000) // Splash screen delay in milliseconds (2 seconds)
         if (authenticator.currentUser == null) {
             navController.navigate("onboarding_screen_one")
         } else {
+            initializeApp()
             navController.navigate("home_screen")
         }
     }
