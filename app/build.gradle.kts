@@ -27,10 +27,6 @@ android {
         properties.load(project.rootProject.file("local.properties").inputStream())
 
         buildConfigField("String","API_KEY","\"${properties.getProperty("NEW_GOOGLE_MAPS_API_KEY")}\"")
-
-
-
-
     }
 
     buildTypes {
@@ -75,6 +71,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.firebase.common.ktx)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

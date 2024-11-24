@@ -1,17 +1,21 @@
 package com.example.csis4175_f24_fitlifebuddy
 
 import FoodSearchScreen
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.LoginScreen
 import com.example.csis4175_f24_fitlifebuddy.loginRegisterScreens.RegisterScreen
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.GymFinderScreen
@@ -29,15 +33,19 @@ import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.FoodResponse
 import com.google.android.libraries.places.api.Places
+//import com.google.firebase.BuildConfig
 
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-
-
+import com.example.csis4175_f24_fitlifebuddy.BuildConfig
+import com.example.csis4175_f24_fitlifebuddy.mainScreens.YouTubePlayerScreen
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,13 +53,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             FitLifeBuddyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    var auth = Firebase.auth;
+                    val auth = Firebase.auth
                     val db = FirebaseFirestore.getInstance()
                     val navController = rememberNavController()
                     val viewModel = FoodSearchViewModel()
+
                     if (!Places.isInitialized()) {
                         Places.initialize(this, BuildConfig.API_KEY)
                     }
+
                     NavHost(navController = navController, startDestination = "splash_screen") {
                         composable("splash_screen") {
                             SplashScreen(authenticator = auth, navController = navController)
@@ -66,17 +76,12 @@ class MainActivity : ComponentActivity() {
                             OnboardingScreenThree(navController = navController)
                         }
                         composable("login_screen") {
-                            // Get the current user's UID
-
-                            LoginScreen( authenticator = auth, database = db,navController = navController)
+                            LoginScreen(authenticator = auth, database = db, navController = navController)
                         }
                         composable("register_screen") {
-                            // Get the current user's UID
-
                             RegisterScreen(authenticator = auth, database = db, navController = navController)
                         }
                         composable("fitness_level_screen") {
-                            // Get the current user's UID
                             SelectFitnessLevelScreen(database = db, navController = navController)
                         }
                         composable("home_screen") {
@@ -85,6 +90,39 @@ class MainActivity : ComponentActivity() {
                         composable("workout_plan_screen") {
                             WorkoutPlanScreen(navController = navController)
                         }
+                        composable(
+                            route = "youtube_player/{videoUrl}/{exerciseName}/{duration}/{description}",
+                            arguments = listOf(
+                                navArgument("videoUrl") { type = NavType.StringType },
+                                navArgument("exerciseName") { type = NavType.StringType },
+                                navArgument("duration") { type = NavType.IntType },
+                                navArgument("description") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val videoUrl = backStackEntry.arguments?.getString("videoUrl") ?: ""
+                            val exerciseName = backStackEntry.arguments?.getString("exerciseName") ?: "Exercise"
+                            val duration = backStackEntry.arguments?.getInt("duration") ?: 3
+                            val description = try {
+                                URLDecoder.decode(
+                                    backStackEntry.arguments?.getString("description") ?: "No description available",
+                                    StandardCharsets.UTF_8.toString()
+                                )
+                            } catch (e: Exception) {
+                                "No description available"
+                            }
+
+                            YouTubePlayerScreen(
+                                navController = navController,
+                                videoUrl = videoUrl,
+                                exerciseName = exerciseName,
+                                duration = duration,
+                                description = description,
+                                onExerciseDone = { /* Update progress in WorkoutPlanScreen */ }
+                            )
+                        }
+
+
+
                         composable("nutrition_history_screen") {
                             NutritionHistoryScreen(navController = navController, viewModel = viewModel)
                         }
@@ -100,14 +138,12 @@ class MainActivity : ComponentActivity() {
                         composable("settings_screen") {
                             SettingsScreen(navController = navController)
                         }
-                       // composable("profile_screen") { /* Profile code here */ }
-                       // composable("exercise_demos_screen") { /* Exercise Demos code here */ }
-                       // composable("progress_tracker") { /* Progress Tracker code here */ }
                     }
                 }
             }
         }
     }
 }
+
 
 
