@@ -57,7 +57,7 @@ fun ProfileScreen(navController: NavHostController) {
                     style = TextStyle(
                         fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
+                        fontSize = 35.sp,
                         color = Color(0xFFD05C29),
                         textAlign = TextAlign.Center
                     ),

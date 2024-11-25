@@ -65,7 +65,7 @@ fun GymFinderScreen(navController: NavHostController) {
                 style = TextStyle(
                     fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
                     fontWeight = FontWeight.Bold,
-                    fontSize = (screenWidth * 0.08f).value.sp,
+                    fontSize = 35.sp,
                     color = Color(0xFFD05C29),
                     textAlign = TextAlign.Center
                 ),

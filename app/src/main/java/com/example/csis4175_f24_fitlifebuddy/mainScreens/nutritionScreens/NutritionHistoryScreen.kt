@@ -1,6 +1,5 @@
 package com.example.csis4175_f24_fitlifebuddy.mainScreens.nutritionScreens
 
-import FoodItemCard
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,7 +27,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,18 +49,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
-import com.example.csis4175_f24_fitlifebuddy.ui.theme.FitLifeBuddyTheme
 import com.example.csis4175_f24_fitlifebuddy.utilities.FoodSearchViewModel
-import com.example.csis4175_f24_fitlifebuddy.utilities.RetrofitInstance
 import com.example.csis4175_f24_fitlifebuddy.utilities.model.Product
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -127,13 +119,10 @@ fun NutritionHistoryScreen(navController: NavHostController, viewModel: FoodSear
     }
 
     Scaffold(
-        containerColor = Color.White,
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
             // Background Image
             Image(
@@ -152,13 +141,13 @@ fun NutritionHistoryScreen(navController: NavHostController, viewModel: FoodSear
                     style = TextStyle(
                         fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
                         fontWeight = FontWeight.Bold,
-                        fontSize = (screenWidth * 0.08f).value.sp,
+                        fontSize = 35.sp,
                         color = Color(0xFFD05C29),
                         textAlign = TextAlign.Center
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 20.dp, bottom = 10.dp)
+                        .padding(top = 50.dp, bottom = 10.dp)
                 )
 
                 when {
@@ -233,7 +222,7 @@ fun NutritionHistoryScreen(navController: NavHostController, viewModel: FoodSear
                                     }
                                 }
                                 items(items) { (foodItem, _, servings, mealType) ->
-                                    FoodItemCardHistoryScreen(
+                                    FoodItemCardForHistoryScreen(
                                         foodItem = foodItem,
                                         servings = servings,
                                         mealType = mealType,
@@ -256,6 +245,7 @@ fun NutritionHistoryScreen(navController: NavHostController, viewModel: FoodSear
                 shape = RoundedCornerShape(12.dp), // Use RoundedCornerShape with specified corner radius
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
+                    .padding(innerPadding)
                     .padding(16.dp)
                     .size(50.dp), // Slightly larger size for the square
                 elevation = ButtonDefaults.buttonElevation( // Add elevation for shadow
@@ -277,7 +267,7 @@ fun NutritionHistoryScreen(navController: NavHostController, viewModel: FoodSear
 }
 
 @Composable
-fun FoodItemCardHistoryScreen(
+fun FoodItemCardForHistoryScreen(
     foodItem: Product,
     servings: Int, // Servings parameter
     mealType: String,

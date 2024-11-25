@@ -40,7 +40,8 @@ fun BottomNavigationBar(navController: NavHostController) {
     // Map routes to their parent menu items
     val routeMapping = mapOf(
         "food_search_screen" to "nutrition_history_screen",
-        "food_details_screen" to "nutrition_history_screen"
+        "food_details_screen" to "nutrition_history_screen",
+        "youtube_player/{videoUrl}/{exerciseName}/{duration}/{description}" to "workout_plan_screen"
     )
 
     Column {
@@ -67,7 +68,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                     },
                     selected = selectedRoute == item.first,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFF9B70),
+                        selectedIconColor = Color(0xFFD05C29),
                         unselectedIconColor = Color(0xFF707070),
                         indicatorColor = Color.Transparent
                     ),

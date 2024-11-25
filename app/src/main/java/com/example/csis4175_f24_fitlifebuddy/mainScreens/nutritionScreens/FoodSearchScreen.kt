@@ -68,7 +68,7 @@ fun FoodSearchScreen(navController: NavHostController, viewModel: FoodSearchView
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+
         ) {
             // Background Image
             Image(
@@ -82,7 +82,7 @@ fun FoodSearchScreen(navController: NavHostController, viewModel: FoodSearchView
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxSize().padding(innerPadding)
             ) {
                 // Title
                 Text(
@@ -90,7 +90,7 @@ fun FoodSearchScreen(navController: NavHostController, viewModel: FoodSearchView
                     style = TextStyle(
                         fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
+                        fontSize = 35.sp,
                         color = Color(0xFFD05C29),
                         textAlign = TextAlign.Center
                     ),

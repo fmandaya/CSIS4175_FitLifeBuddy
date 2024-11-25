@@ -1,9 +1,12 @@
 package com.example.csis4175_f24_fitlifebuddy.mainScreens
 
-import android.content.Context
 import android.os.CountDownTimer
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,10 +18,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -78,31 +81,31 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
     val exercises = listOf(
         Exercise(
             name = "Push-Ups",
-            videoUrl = "https://www.youtube.com/watch?v=_l3ySVKYVJ8",
+            videoUrl = "https://www.youtube.com/watch?v=_l3ySVKYVJ8?rel=0&autoplay=1&fs=1&showinfo=0",
             duration = 3,
             description = "Strengthens your chest, shoulders, and triceps while engaging your core."
         ),
         Exercise(
             name = "Squats",
-            videoUrl = "https://www.youtube.com/watch?v=aclHkVaku9U",
+            videoUrl = "https://www.youtube.com/watch?v=aclHkVaku9U?rel=0&autoplay=1&fs=1&showinfo=0",
             duration = 3,
             description = "Focuses on your quads, hamstrings, and glutes for lower body strength."
         ),
         Exercise(
             name = "Lunges",
-            videoUrl = "https://www.youtube.com/watch?v=QOVaHwm-Q6U",
+            videoUrl = "https://www.youtube.com/watch?v=QOVaHwm-Q6U?rel=0&autoplay=1&fs=1&showinfo=0",
             duration = 3,
             description = "Targets your glutes, quads, and stabilizing muscles for balance and mobility."
         ),
         Exercise(
             name = "Plank",
-            videoUrl = "https://www.youtube.com/watch?v=pSHjTRCQxIw",
+            videoUrl = "https://www.youtube.com/watch?v=pSHjTRCQxIw?rel=0&autoplay=1&fs=1&showinfo=0",
             duration = 3,
             description = "Builds core strength and stability while improving posture."
         ),
         Exercise(
             name = "Burpees",
-            videoUrl = "https://www.youtube.com/watch?v=TU8QYVW0gDU",
+            videoUrl = "https://www.youtube.com/watch?v=TU8QYVW0gDU?rel=0&autoplay=1&fs=1&showinfo=0",
             duration = 3,
             description = "A full-body workout for strength and cardiovascular endurance."
         )
@@ -122,10 +125,16 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
         }
     }
 
-    // Calculate overall progress
-    val overallProgress = if (exerciseStates.isEmpty()) 0f else {
-        exerciseStates.count { it.isChecked }.toFloat() / exercises.size
-    }
+    // Calculate and animate overall progress
+    val overallProgress by animateFloatAsState(
+        targetValue = if (exerciseStates.isEmpty()) 0f else {
+            exerciseStates.count { it.isChecked }.toFloat() / exercises.size
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -136,15 +145,16 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
             Image(
                 painter = painterResource(id = R.drawable.bg_workoutplan),
                 contentDescription = "Workout Plan Background",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().alpha(0.5f),
                 contentScale = ContentScale.Crop
+
             )
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(innerPadding)
-                    .padding(32.dp)
+                    .padding(horizontal = 20.dp)
             ) {
                 // Title
                 Text(
@@ -156,7 +166,7 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
                         color = Color(0xFFD05C29),
                         textAlign = TextAlign.Center
                     ),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, top = 24.dp)
                 )
 
                 // Overall Progress Bar
@@ -167,36 +177,35 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(16.dp)
-                            .background(Color(0xFFE0E0E0))
+                            .height(12.dp)
+                            .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp)) // Background with rounded corners
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(overallProgress)
                                 .fillMaxHeight()
-                                .background(Color(0xFFFF4E00))
+                                .clip(RoundedCornerShape(8.dp)) // Clip the progress bar with rounded corners
+                                .background(Color(0xFFD05C29)) // Progress bar color
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Box(
                         modifier = Modifier
-                            .width(210.dp)
                             .background(
                                 color = Color.Gray.copy(alpha = 0.7f),
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clip(RoundedCornerShape(12.dp))
-                            .padding(8.dp),
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Overall Progress: ${(overallProgress * 100).toInt()}%",
                             style = TextStyle(
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 16.sp,
-                                color = Color.White
+                                fontSize = 14.sp,
+                                color = Color.White,
+                                fontFamily = FontFamily(Font(R.font.quicksand_bold))
                             ),
                             textAlign = TextAlign.Center
                         )
@@ -205,7 +214,7 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
 
                 // Exercise List
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(8.dp),
+                    modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     itemsIndexed(exercises) { index, exercise ->
@@ -242,15 +251,15 @@ fun ExerciseItem(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F8F8)),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxWidth().padding(vertical = 4.dp, horizontal = 1.dp)
+            .wrapContentHeight(),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             // Check/Uncheck icon based on Firebase state
             Image(
@@ -282,19 +291,24 @@ fun ExerciseItem(
             ) {
                 Text(
                     text = exercise.name,
-                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold))
+                    )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = exercise.description,
-                    style = TextStyle(fontSize = 14.sp, color = Color.Gray)
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.quicksand_regular))
+                    )
                 )
             }
         }
     }
 }
-
-
 
 
 
@@ -348,115 +362,133 @@ fun YouTubePlayerScreen(
     val minutes = (timeLeft / 1000) / 60
     val seconds = (timeLeft / 1000) % 60
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(WindowInsets.statusBars.asPaddingValues())
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.bg_exercise),
-            contentDescription = "Background",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        Image(
-            painter = painterResource(id = R.drawable.btn_backarrow),
-            contentDescription = "Back Button",
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 16.dp, start = 16.dp)
-                .clickable { navController.navigateUp() }
-                .size(48.dp),
-            contentScale = ContentScale.Fit
-        )
-
-        Column(
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) } // Add your BottomNavigationBar here
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = exerciseName,
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
-                    color = Color.Black,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.bg_exercise),
+                contentDescription = "Background",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
 
-            Text(
-                text = description,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    color = Color(0xFFA3734F),
-                    textAlign = TextAlign.Center
-                ),
+         /*   Image(
+                painter = painterResource(id = R.drawable.btn_backarrow),
+                contentDescription = "Back Button",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 25.dp)
-            )
+                    .align(Alignment.TopStart)
+                    .padding(top = 16.dp, start = 16.dp)
+                    .clickable { navController.navigateUp() }
+                    .size(48.dp),
+                contentScale = ContentScale.Fit
+            ) */
 
-            AndroidView(
-                factory = { context ->
-                    WebView(context).apply {
-                        settings.javaScriptEnabled = true
-                        webViewClient = WebViewClient()
-                        loadUrl(decodedUrl)
-                    }
-                },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp)
-            )
-
-            // Timer Display
-            Text(
-                text = String.format("%02d:%02d", minutes, seconds),
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 60.sp,
-                    color = Color(0xFF7B6F72)
-                ),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Timer Control Buttons
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Button(
-                    onClick = { if (!isRunning) startOrResumeTimer() else pauseTimer() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF6B89D))
-                ) {
-                    Text(
-                        text = if (!isRunning) "Start" else "Pause",
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = exerciseName,
+                    style = TextStyle(
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 40.sp,
+                        color = Color(0xFFD05C29),
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
 
-                Button(
-                    onClick = { resetTimer() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF7F8F8))
+                Text(
+                    text = description,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color(0xFFA3734F),
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp)
+                )
+
+                AndroidView(
+                    factory = { context ->
+                        WebView(context).apply {
+                            settings.javaScriptEnabled = true
+                            settings.loadWithOverviewMode = true
+                            settings.useWideViewPort = true
+                            settings.mediaPlaybackRequiresUserGesture = false
+
+                            webViewClient = WebViewClient()
+
+                            loadUrl(decodedUrl)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                        .clip(RoundedCornerShape(16.dp)) // Apply rounded corners
+                        .background(Color.White) // Optional: Add a background color
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Timer Display
+                Text(
+                    text = String.format("%02d:%02d", minutes, seconds),
+                    style = TextStyle(
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 50.sp,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+
+                // Timer Control Buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(text = "Reset", color = Color.Gray)
+                    Button(
+                        onClick = { if (!isRunning) startOrResumeTimer() else pauseTimer() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD05C29),
+                            contentColor = Color.White
+                        ),
+                    ) {
+                        Text(
+                            text = if (!isRunning) "Start" else "Pause",
+                            color = Color.White
+                        )
+                    }
+
+                    Button(
+                        onClick = { resetTimer() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF7F8F8))
+                    ) {
+                        Text(text = "Reset", color = Color.Gray)
+                    }
                 }
             }
         }
     }
 }
-
 
 
