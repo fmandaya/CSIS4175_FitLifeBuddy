@@ -1,12 +1,11 @@
 package com.example.csis4175_f24_fitlifebuddy.mainScreens
 
+import android.os.Build
 import android.os.CountDownTimer
+import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,51 +33,91 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.example.csis4175_f24_fitlifebuddy.R
 import com.example.csis4175_f24_fitlifebuddy.mainScreens.navigation.BottomNavigationBar
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import kotlinx.coroutines.launch
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 data class Exercise(
     val name: String,
     val videoUrl: String,
-    val duration: Int, // Duration in minutes
-    val description: String // Description of the exercise
+    val duration: Int,
+    val description: String
 )
-
-val firestore = FirebaseFirestore.getInstance()
 
 data class ExerciseState(
     val progress: Float = 0f,
     val isChecked: Boolean = false
 )
 
-suspend fun saveExerciseState(userId: String, index: Int, state: ExerciseState) {
+fun saveWorkoutProgress(
+    userId: String,
+    date: String,
+    index: Int,
+    state: ExerciseState
+) {
+    val firestore = FirebaseFirestore.getInstance()
+
+    val documentKey = "$date-exercise_$index"
+    val workoutProgress = mapOf(
+        "progress" to state.progress,
+        "isChecked" to state.isChecked,
+        "date" to date,
+        "exerciseIndex" to index
+    )
+
     firestore.collection("users")
         .document(userId)
         .collection("workoutProgress")
-        .document("exercise_$index")
-        .set(state)
-        .await()
+        .document(documentKey)
+        .set(workoutProgress)
+        .addOnSuccessListener {
+            Log.d("Firestore", "Workout progress saved successfully.")
+        }
+        .addOnFailureListener { e ->
+            Log.e("Firestore", "Error saving workout progress: ${e.message}")
+        }
 }
 
-suspend fun loadExerciseState(userId: String, index: Int): ExerciseState {
-    val document = firestore.collection("users")
+suspend fun loadExerciseStateByDate(userId: String, date: String, exercises: List<Exercise>): List<ExerciseState> {
+    val firestore = FirebaseFirestore.getInstance()
+    val snapshot = firestore.collection("users")
         .document(userId)
         .collection("workoutProgress")
-        .document("exercise_$index")
+        .whereEqualTo("date", date)
         .get()
         .await()
 
-    return document.toObject(ExerciseState::class.java) ?: ExerciseState()
+    // Initialize states to default
+    val states = MutableList(exercises.size) { ExerciseState() }
+
+    for (document in snapshot.documents) {
+        val docId = document.id
+        val index = docId.substringAfter("exercise_").toIntOrNull()
+
+        if (index != null && index in states.indices) {
+            val state = document.toObject(ExerciseState::class.java)
+            if (state != null) states[index] = state
+        }
+    }
+    return states
 }
 
 
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier: Modifier = Modifier) {
-    val exercises = listOf(
+fun WorkoutPlanScreen(navController: NavHostController, userId: String) {
+    val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+
+    // States
+    var exercises by remember {
+        mutableStateOf(
+            listOf(
         Exercise(
             name = "Push-Ups",
             videoUrl = "https://www.youtube.com/watch?v=_l3ySVKYVJ8?rel=0&autoplay=1&fs=1&showinfo=0",
@@ -109,125 +148,165 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
             duration = 3,
             description = "A full-body workout for strength and cardiovascular endurance."
         )
-    )
-
-    val coroutineScope = rememberCoroutineScope()
-    val exerciseStates = remember { mutableStateListOf<ExerciseState>() }
-
-    // Fetch exercise states from Firebase
-    LaunchedEffect(Unit) {
-        exerciseStates.clear()
-        coroutineScope.launch {
-            exercises.indices.forEach { index ->
-                val state = loadExerciseState(userId, index)
-                exerciseStates.add(state)
-            }
-        }
+            ))
     }
 
-    // Calculate and animate overall progress
-    val overallProgress by animateFloatAsState(
-        targetValue = if (exerciseStates.isEmpty()) 0f else {
-            exerciseStates.count { it.isChecked }.toFloat() / exercises.size
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
-    )
+    var isLoading by remember { mutableStateOf(true) }
+    var exerciseStates by remember { mutableStateOf(emptyList<ExerciseState>()) }
 
+    val firestore = FirebaseFirestore.getInstance()
+
+    // Fetch data from Firestore when the screen is loaded
+    LaunchedEffect(userId, currentDate) {
+        firestore.collection("users")
+            .document(userId)
+            .collection("workoutProgress")
+            .whereEqualTo("date", currentDate)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val states = MutableList(exercises.size) { ExerciseState() } // Default states
+                snapshot.documents.forEach { document ->
+                    val index = document.id.substringAfter("exercise_").toIntOrNull()
+                    val isChecked = document.getBoolean("isChecked") ?: false
+                    val progress = (document.getLong("progress") ?: 0).toFloat()
+                    if (index != null && index in states.indices) {
+                        states[index] = ExerciseState(progress, isChecked)
+                    }
+                }
+                exerciseStates = states
+                isLoading = false
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Firestore", "Error fetching workoutProgress: ${exception.message}")
+                isLoading = false
+            }
+    }
+
+    // Calculate progress
+    val overallProgress = if (exerciseStates.isEmpty()) 0f else {
+        exerciseStates.count { it.isChecked }.toFloat() / exercises.size
+    }
+
+    // UI
     Scaffold(
         containerColor = Color.Transparent,
         bottomBar = { BottomNavigationBar(navController) }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier
+            .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             // Background Image
             Image(
                 painter = painterResource(id = R.drawable.bg_workoutplan),
                 contentDescription = "Workout Plan Background",
                 modifier = Modifier.fillMaxSize().alpha(0.5f),
                 contentScale = ContentScale.Crop
-
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(innerPadding)
-                    .padding(horizontal = 20.dp)
-            ) {
-                // Title
-                Text(
-                    text = "Workout Plan",
-                    style = TextStyle(
-                        fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 35.sp,
-                        color = Color(0xFFD05C29),
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, top = 24.dp)
-                )
-
-                // Overall Progress Bar
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Color(0xFFD05C29))
+                }
+            } else {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(innerPadding)
+                        .padding(horizontal = 20.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp)) // Background with rounded corners
+                    // Title
+                    Text(
+                        text = "Workout Plan",
+                        style = TextStyle(
+                            fontFamily = FontFamily(Font(R.font.quicksand_bold, FontWeight.Bold)),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 35.sp,
+                            color = Color(0xFFD05C29),
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, top = 34.dp)
+                    )
+                    // Date
+                    Text(
+                        text = currentDate,
+                        style = TextStyle(
+                            fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                            fontSize = 22.sp,
+                            color = Color(0xFFA3734F),
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    )
+
+
+                    // Progress Bar
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        LinearProgressIndicator(
+                            progress = overallProgress,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(10.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            color = Color(0xFFD05C29)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(overallProgress)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(8.dp)) // Clip the progress bar with rounded corners
-                                .background(Color(0xFFD05C29)) // Progress bar color
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                color = Color.Gray.copy(alpha = 0.7f),
-                                shape = RoundedCornerShape(12.dp)
+                                .background(
+                                    color = Color.Gray.copy(alpha = 0.7f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .clip(RoundedCornerShape(12.dp))
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Overall Progress: ${(overallProgress * 100).toInt()}%",
+                                style = TextStyle(
+                                    fontSize = 17.sp,
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.quicksand_bold))
+                                ),
+                                textAlign = TextAlign.Center
                             )
-                            .clip(RoundedCornerShape(12.dp))
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Overall Progress: ${(overallProgress * 100).toInt()}%",
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.quicksand_bold))
-                            ),
-                            textAlign = TextAlign.Center
-                        )
+                        }
                     }
-                }
 
-                // Exercise List
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    itemsIndexed(exercises) { index, exercise ->
-                        ExerciseItem(
-                            exercise = exercise,
-                            state = exerciseStates.getOrNull(index) ?: ExerciseState(),
-                            index = index,
-                            userId = userId,
-                            navController = navController
-                        ) { newState ->
-                            coroutineScope.launch {
-                                saveExerciseState(userId, index, newState)
-                                exerciseStates[index] = newState
+                    // Exercise List
+                    LazyColumn {
+                        itemsIndexed(exercises) { index, exercise ->
+                            val state = exerciseStates.getOrNull(index) ?: ExerciseState()
+                            ExerciseItem(
+                                exercise = exercise,
+                                state = state,
+                                index = index,
+                                userId = userId,
+                                navController = navController
+                            ) { newState ->
+                                firestore.collection("users")
+                                    .document(userId)
+                                    .collection("workoutProgress")
+                                    .document("$currentDate-exercise_$index")
+                                    .set(
+                                        mapOf(
+                                            "progress" to newState.progress,
+                                            "isChecked" to newState.isChecked,
+                                            "date" to currentDate,
+                                            "exerciseIndex" to index
+                                        )
+                                    )
+                                    .addOnSuccessListener {
+                                        exerciseStates = exerciseStates.toMutableList().apply {
+                                            this[index] = newState
+                                        }
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Log.e("Firestore", "Error updating workoutProgress: ${exception.message}")
+                                    }
                             }
                         }
                     }
@@ -236,7 +315,6 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String, modifier
         }
     }
 }
-
 
 @Composable
 fun ExerciseItem(
@@ -251,7 +329,8 @@ fun ExerciseItem(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth().padding(vertical = 4.dp, horizontal = 1.dp)
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp)
             .wrapContentHeight(),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(4.dp),
@@ -261,15 +340,18 @@ fun ExerciseItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(16.dp)
         ) {
-            // Check/Uncheck icon based on Firebase state
+            // Check/Uncheck Icon
             Image(
-                painter = painterResource(if (state.isChecked) R.drawable.check else R.drawable.uncheck),
+                painter = painterResource(id = if (state.isChecked) R.drawable.check else R.drawable.uncheck),
                 contentDescription = if (state.isChecked) "Checked" else "Unchecked",
                 modifier = Modifier
-                    .size(48.dp)
-                    .clickable(enabled = !state.isChecked) {
+                    .size(40.dp)
+                    .clickable {
                         coroutineScope.launch {
-                            val updatedState = ExerciseState(progress = 1f, isChecked = true)
+                            val updatedState = state.copy(
+                                progress = if (!state.isChecked) 1f else 0f,
+                                isChecked = !state.isChecked
+                            )
                             onExerciseDone(updatedState)
                         }
                     }
@@ -279,15 +361,12 @@ fun ExerciseItem(
 
             // Exercise Details
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        val encodedUrl = URLEncoder.encode(exercise.videoUrl, StandardCharsets.UTF_8.toString())
-                        val encodedDescription = URLEncoder.encode(exercise.description, StandardCharsets.UTF_8.toString())
-                        navController.navigate(
-                            "youtube_player/$encodedUrl/${exercise.name}/${exercise.duration}/$encodedDescription"
-                        )
-                    }
+                modifier = Modifier.weight(1f).clickable {
+                    val encodedUrl = URLEncoder.encode(exercise.videoUrl, StandardCharsets.UTF_8.toString())
+                    navController.navigate(
+                        "youtube_player/$encodedUrl/${exercise.name}/${exercise.duration}/${exercise.description}"
+                    )
+                }
             ) {
                 Text(
                     text = exercise.name,
@@ -309,9 +388,6 @@ fun ExerciseItem(
         }
     }
 }
-
-
-
 
 
 
@@ -377,16 +453,16 @@ fun YouTubePlayerScreen(
                 contentScale = ContentScale.Crop
             )
 
-         /*   Image(
-                painter = painterResource(id = R.drawable.btn_backarrow),
-                contentDescription = "Back Button",
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = 16.dp, start = 16.dp)
-                    .clickable { navController.navigateUp() }
-                    .size(48.dp),
-                contentScale = ContentScale.Fit
-            ) */
+            /*   Image(
+                   painter = painterResource(id = R.drawable.btn_backarrow),
+                   contentDescription = "Back Button",
+                   modifier = Modifier
+                       .align(Alignment.TopStart)
+                       .padding(top = 16.dp, start = 16.dp)
+                       .clickable { navController.navigateUp() }
+                       .size(48.dp),
+                   contentScale = ContentScale.Fit
+               ) */
 
             Column(
                 modifier = Modifier
@@ -490,5 +566,3 @@ fun YouTubePlayerScreen(
         }
     }
 }
-
-
