@@ -1,11 +1,10 @@
 package com.example.csis4175_f24_fitlifebuddy.utilities
 
-import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-object RetrofitInstance {
+object RetrofitInstanceFoodAPI {
     private const val BASE_URL = "https://world.openfoodfacts.org/"
 
     private val client = OkHttpClient.Builder()

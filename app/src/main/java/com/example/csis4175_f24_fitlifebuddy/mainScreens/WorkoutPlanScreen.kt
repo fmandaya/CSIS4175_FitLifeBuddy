@@ -501,6 +501,8 @@ fun YouTubePlayerScreen(
                 Text(
                     text = description,
                     style = TextStyle(
+                        fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                        fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = Color(0xFFA3734F),
                         textAlign = TextAlign.Center
@@ -564,7 +566,13 @@ fun YouTubePlayerScreen(
                     ) {
                         Text(
                             text = if (!isRunning) "Start" else "Pause",
-                            color = Color.White
+                            color = Color.White,
+                            style = TextStyle(
+                                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            ),
                         )
                     }
 
@@ -572,7 +580,14 @@ fun YouTubePlayerScreen(
                         onClick = { resetTimer() },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF7F8F8))
                     ) {
-                        Text(text = "Reset", color = Color.Gray)
+                        Text(text = "Reset",
+                            color = Color.Gray,
+                            style = TextStyle(
+                                fontFamily = FontFamily(Font(R.font.quicksand_bold)),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            ),)
                     }
                 }
             }

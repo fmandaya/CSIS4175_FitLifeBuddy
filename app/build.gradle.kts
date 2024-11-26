@@ -27,6 +27,7 @@ android {
         properties.load(project.rootProject.file("local.properties").inputStream())
 
         buildConfigField("String","API_KEY","\"${properties.getProperty("NEW_GOOGLE_MAPS_API_KEY")}\"")
+        buildConfigField("String","QUOTES_API_KEY","\"${properties.getProperty("QUOTES_API_KEY")}\"")
     }
 
     buildTypes {
@@ -111,6 +112,7 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:2.11.0")
     implementation("io.coil-kt:coil-compose:2.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
 
 

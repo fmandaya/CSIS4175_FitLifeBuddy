@@ -22,7 +22,7 @@ class FoodSearchViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                val response = RetrofitInstance.api.searchFood(
+                val response = RetrofitInstanceFoodAPI.api.searchFood(
                     searchTerms = query,
                     tagType = "countries",
                     tagContains = "contains",
@@ -57,7 +57,7 @@ class FoodSearchViewModel : ViewModel() {
         isLoading = true
         return try {
             // Fetch product details using productID
-            val response = RetrofitInstance.api.getProductDetails(productID)
+            val response = RetrofitInstanceFoodAPI.api.getProductDetails(productID)
 
             if (response.product != null) {
                 Log.d("Product Details", "Fetched Product: ${response.product}")
