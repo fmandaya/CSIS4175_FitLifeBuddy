@@ -151,12 +151,36 @@ fun WorkoutPlanScreen(navController: NavHostController, userId: String) {
             ))
     }
 
+
+    var fitnessLevel by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     var exerciseStates by remember { mutableStateOf(emptyList<ExerciseState>()) }
-
     val firestore = FirebaseFirestore.getInstance()
 
-    // Fetch data from Firestore when the screen is loaded
+    // Fetch fitness level and update exercises
+            LaunchedEffect(userId) {
+                firestore.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        fitnessLevel = document.getString("fitnessLevel") ?: "beginner"
+
+                        // Adjust durations based on fitness level
+                        val updatedDuration = when (fitnessLevel.lowercase()) {
+                            "beginner" -> 3
+                            "intermediate" -> 4
+                            "advanced" -> 5
+                            else -> 3
+                        }
+                        exercises = exercises.map { it.copy(duration = updatedDuration) }
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e("Firestore", "Error fetching fitness level: ${exception.message}")
+                    }
+                    .addOnCompleteListener { isLoading = false }
+            }
+
+    // Fetch data from Firestore for the current date
     LaunchedEffect(userId, currentDate) {
         firestore.collection("users")
             .document(userId)
@@ -452,17 +476,6 @@ fun YouTubePlayerScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-
-            /*   Image(
-                   painter = painterResource(id = R.drawable.btn_backarrow),
-                   contentDescription = "Back Button",
-                   modifier = Modifier
-                       .align(Alignment.TopStart)
-                       .padding(top = 16.dp, start = 16.dp)
-                       .clickable { navController.navigateUp() }
-                       .size(48.dp),
-                   contentScale = ContentScale.Fit
-               ) */
 
             Column(
                 modifier = Modifier
