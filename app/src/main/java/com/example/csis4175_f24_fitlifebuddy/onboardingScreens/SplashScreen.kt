@@ -70,7 +70,7 @@ fun SplashScreen(authenticator: FirebaseAuth, navController: NavHostController, 
 
     // Navigate to the next screen after a delay
     LaunchedEffect(Unit) {
-     //   delay(2000) // Splash screen delay in milliseconds (2 seconds)
+        delay(2000) // Splash screen delay in milliseconds (2 seconds)
         if (authenticator.currentUser == null) {
             navController.navigate("onboarding_screen_one")
         } else {

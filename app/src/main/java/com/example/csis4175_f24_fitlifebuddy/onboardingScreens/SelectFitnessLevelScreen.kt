@@ -146,7 +146,7 @@ fun FitnessLevelItem(
     onClick: () -> Unit
 ) {
     val backgroundColor = if (isSelected) Color(0xFFD05C29) else Color.LightGray
-    val textColor = Color.Black
+    val textColor = if (isSelected) Color.White else Color.Black
 
     Box(
         modifier = Modifier
@@ -163,16 +163,15 @@ fun FitnessLevelItem(
                 text = level,
                 fontSize = 18.sp,  // Slightly smaller font for responsiveness
                 fontWeight = FontWeight.Bold,
-                color = textColor,
+                color = textColor,  // Changes color based on selection
                 fontFamily = FontFamily(
                     Font(R.font.quicksand_semibold, FontWeight.Bold)
                 ),
-
             )
             Text(
                 text = description,
                 fontSize = 14.sp,
-                color = textColor,
+                color = textColor,  // Changes color based on selection
                 fontFamily = FontFamily(
                     Font(R.font.quicksand_regular, FontWeight.Bold)
                 ),

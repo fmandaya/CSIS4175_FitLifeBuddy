@@ -85,6 +85,12 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                 //Log.d("API_CALL", "Quotes fetched: $quotes")
                 quote = if (Random.nextInt(2) == 0) quote1.random() else quote2.random();
 
+                fetchWaterTrackerFromFirebase(UserManager.documentReferenceID) { savedState ->
+                    savedState.forEachIndexed { index, isFilled ->
+                        waterTracker[index] = isFilled
+                    }
+                }
+                /*
                 if (lastResetDate.value != currentDate) {
                     lastResetDate.value = currentDate
                     waterTracker.fill(false) // Reset the tracker
@@ -96,6 +102,8 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                         }
                     }
                 }
+
+                 */
             } catch (e: Exception) {
                 Log.e("API_CALL", "Error: ${e.message}")
                 quote = Quote("Stay positive and keep moving!", "Anonymous")
@@ -174,7 +182,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                     fontSize = 16.sp,
                     fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                     color = Color.Black,
-                    modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+                    modifier = Modifier.padding(start = 10.dp, top = 15.dp)
 
                 )
                 // Buttons: Workout and Log Food
