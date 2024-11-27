@@ -128,7 +128,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(innerPadding).padding(top = 230.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
+                    .padding(innerPadding).padding(top = 260.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -154,7 +154,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                 // Display the quote in a fixed-size box
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .width(340.dp)
                         .height(100.dp),
                     contentAlignment = Alignment.Center // Align content to the center of the box
                 ) {
@@ -163,23 +163,25 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                             text = "\"${it.quote}\" - ${it.author ?: "Unknown"}",
                             textAlign = TextAlign.Center,
                             style = TextStyle(
-                                fontFamily = FontFamily(Font(R.font.quicksand_light)),
-                                fontSize = 14.sp
+                                fontFamily = FontFamily(Font(R.font.quicksand_regular)),
+                                color = Color(0xFF26425A),
+                                fontSize = 16.sp
                             ),
                             maxLines = 5, // Limit the number of lines to avoid overflow
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis // Add ellipsis for overflow text
                         )
                     } ?: Text(
                         text = "Fetching your motivational quote...",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
+                        fontSize = 16.sp,
+                        color = Color(0xFF26425A),
                         textAlign = TextAlign.Center
                     )
                 }
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Let's get Started!",
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontFamily = FontFamily(Font(R.font.quicksand_bold)),
                     color = Color.Black,
                     modifier = Modifier.padding(start = 10.dp, top = 15.dp)
@@ -197,7 +199,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
                     Spacer(modifier = Modifier.width(10.dp))
                     OrangeButton(text = "Log Food") {
                         // Navigate to log food screen
-                        navController.navigate("nutrition_history_screen\"")
+                        navController.navigate("nutrition_history_screen")
                     }
                 }
 
