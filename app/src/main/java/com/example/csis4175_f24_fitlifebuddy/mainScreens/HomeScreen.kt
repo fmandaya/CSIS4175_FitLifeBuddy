@@ -128,7 +128,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(innerPadding).padding(top = 260.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
+                    .padding(innerPadding).padding(top = screenHeight * 0.3f, bottom = 5.dp, start = 10.dp, end = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
