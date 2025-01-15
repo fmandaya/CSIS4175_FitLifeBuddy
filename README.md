@@ -1,5 +1,9 @@
-"# CSIS4175_FitLifeBuddy" 
+#FitLifeBuddy
+FitLife Buddy is a health and fitness app designed to help users track workouts, monitor nutrition, log water intake, and build healthy habits. Featuring tools like workout logging, meal planning, calorie tracking, progress monitoring, and a gym finder, it offers a seamless and personalized experience to make wellness accessible and enjoyable for everyone.
 
-API key should be saved inside the local.properties
-NEW_GOOGLE_MAPS_API_KEY=AIzaSyAe6r_-1fVe1GeK4JpwEuekzI1sjA6RPHY
-QUOTES_API_KEY=j2zwbRMnnf/qbJmQkKEuWw==QDK6x2HzQw925iwP
+#Technologies-Used
+- Android JetPack Compose with Kotlin
+- Firebase (Authentication and Firestore)
+- APIs: Google Maps API (for Gym Finder functionality), Open Food Facts API (for food search and nutrition tracking), Quotes API by Ninjas (for displaying motivational quotes)
+- Environment: Android Studio
+
